@@ -8,11 +8,14 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 public class PersonModel {
+    public PersonModel(){
+        //constructor for jackson serialisation
+    }
     String firstName;
     String lastName;
     String address;
     String city;
     int zip;
     String phone;
-    String mail;
+    String email;
 }

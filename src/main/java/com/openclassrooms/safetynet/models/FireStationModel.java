@@ -3,13 +3,16 @@ package com.openclassrooms.safetynet.models;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.List;
+import lombok.ToString;
 
 @Setter
 @Getter
 @AllArgsConstructor
+@ToString
 public class FireStationModel {
+    public FireStationModel(){        //constructor for jackson serialisation
+        //constructor for jackson serialisation
+    }
     String address;
-    List<Integer> station;
+    String station;
 }
