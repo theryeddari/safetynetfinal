@@ -15,6 +15,6 @@ public class SubFireStationReplyPerson {
     String lastName;
     String address;
     String city;
-    int zip;
+    String zip;
     String phone;
 }
