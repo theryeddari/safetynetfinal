@@ -35,4 +35,22 @@ public class ManageJsonData {
         TypeReference<List<MedicalRecordModel>> typeReferenceMedicalRecordModel = new TypeReference<>() {};
         return objectMapper.convertValue(globalReaderJsonData().get("medicalrecords"), typeReferenceMedicalRecordModel);
     }
+    public FireStationModel testFireStationReaderByReturn(String address) throws IOException {
+       return fireStationReaderJsonData().stream().filter(listDTO -> listDTO.getAddress().equals(address))
+               .findFirst()
+                .orElse(null);
+    }
+    public PersonModel testPersonReaderByReturn(String firstName, String lastName) throws IOException {
+        return personReaderJsonData().stream().filter(listDTO -> listDTO.getFirstName().equals(firstName)
+                && listDTO.getLastName().equals(lastName))
+                .findFirst()
+                .orElse(null);
+    }
+    public MedicalRecordModel testMedicalRecordReaderByReturn(String firstName, String lastName) throws IOException {
+        return medicalRecordReaderJsonData().stream().filter(listDTO -> listDTO.getFirstName().equals(firstName)
+                        && listDTO.getLastName().equals(lastName))
+                .findFirst()
+                .orElse(null);
+    }
+    //méthodes pour vérifier la class en renvoyer chaque modéle  person station medical record (pour me permettre de tester). couverture de test.
 }
