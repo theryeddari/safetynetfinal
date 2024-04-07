@@ -2,6 +2,7 @@ package com.openclassrooms.safetynet.services;
 
 import com.openclassrooms.safetynet.dto.responses.ChildAlertReplyPersonDTO;
 import com.openclassrooms.safetynet.dto.responses.FireStationReplyPersonDTO;
+import com.openclassrooms.safetynet.dto.responses.PhoneAlertReplyPersonDTO;
 import com.openclassrooms.safetynet.dto.responses.submodels.SubChildAlertReplyAdultFamily;
 import com.openclassrooms.safetynet.dto.responses.submodels.SubChildAlertReplyChildren;
 import com.openclassrooms.safetynet.dto.responses.submodels.SubFireStationModelReplyForCount;
@@ -37,5 +38,12 @@ class PersonServiceTest {
 
         Assertions.assertEquals(List.of(adultExcepted).toString(),reply.getIdentityFamily().stream().filter(listAdult -> listAdult.getFirstName().equals("John") && listAdult.getLastName().equals("Boyd")).toList().toString());
         Assertions.assertEquals(List.of(childExcepted).toString(),reply.getChildren().stream().filter(listChildren -> listChildren.getFirstName().equals("Tenley") && listChildren.getLastName().equals("Boyd")).toList().toString());
+    }
+    @Test
+    void phoneAlertReplyTest() throws IOException {
+        PhoneAlertReplyPersonDTO reply = personService.phoneAlert("1");
+        PhoneAlertReplyPersonDTO phoneExcepted = new PhoneAlertReplyPersonDTO(List.of("841-874-7462"));
+
+        Assertions.assertEquals(phoneExcepted.getPhone(),reply.getPhone().stream().filter(listPhone -> listPhone.contains("841-874-7462")).toList());
     }
 }

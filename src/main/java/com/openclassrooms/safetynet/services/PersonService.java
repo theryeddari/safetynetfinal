@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openclassrooms.safetynet.dto.responses.ChildAlertReplyPersonDTO;
 import com.openclassrooms.safetynet.dto.responses.FireStationReplyPersonDTO;
+import com.openclassrooms.safetynet.dto.responses.PhoneAlertReplyPersonDTO;
 import com.openclassrooms.safetynet.dto.responses.submodels.SubChildAlertReplyAdultFamily;
 import com.openclassrooms.safetynet.dto.responses.submodels.SubChildAlertReplyChildren;
 import com.openclassrooms.safetynet.dto.responses.submodels.SubFireStationModelReplyForCount;
@@ -102,5 +103,22 @@ public class PersonService {
 
         // initialize DTO reply
         return new ChildAlertReplyPersonDTO(listSubChildAlertChildren, listSubChildAlertAdultFamily);
+    }
+
+    public PhoneAlertReplyPersonDTO phoneAlert(String stationNumber) throws IOException {
+        //convert Collection firestations to flux, filter about stationNumber et create list of address
+        List<String> listAddressFireStationModelFiltered = manageJsonData.fireStationReaderJsonData()
+                .stream()
+                .filter(fireStation -> fireStation.getStation().equals(stationNumber))
+                .map(FireStationModel::getAddress)
+                .toList();
+
+        //convert Collection persons  to flux,filter about  firestation address and create list of persons.
+        List<String> listPhonePersonFiltered = manageJsonData.personReaderJsonData()
+                .stream()
+                .filter(personModel -> listAddressFireStationModelFiltered.contains(personModel.getAddress())).map(PersonModel::getPhone).toList();
+
+        System.out.println(listPhonePersonFiltered);
+        return new PhoneAlertReplyPersonDTO(listPhonePersonFiltered);
     }
 }
