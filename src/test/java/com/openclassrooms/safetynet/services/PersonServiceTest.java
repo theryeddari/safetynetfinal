@@ -1,12 +1,10 @@
 package com.openclassrooms.safetynet.services;
 
 import com.openclassrooms.safetynet.dto.responses.ChildAlertReplyPersonDTO;
+import com.openclassrooms.safetynet.dto.responses.FireReplyPersonDTO;
 import com.openclassrooms.safetynet.dto.responses.FireStationReplyPersonDTO;
 import com.openclassrooms.safetynet.dto.responses.PhoneAlertReplyPersonDTO;
-import com.openclassrooms.safetynet.dto.responses.submodels.SubChildAlertReplyAdultFamily;
-import com.openclassrooms.safetynet.dto.responses.submodels.SubChildAlertReplyChildren;
-import com.openclassrooms.safetynet.dto.responses.submodels.SubFireStationModelReplyForCount;
-import com.openclassrooms.safetynet.dto.responses.submodels.SubFireStationReplyPerson;
+import com.openclassrooms.safetynet.dto.responses.submodels.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,5 +43,11 @@ class PersonServiceTest {
         PhoneAlertReplyPersonDTO phoneExcepted = new PhoneAlertReplyPersonDTO(List.of("841-874-7462"));
 
         Assertions.assertEquals(phoneExcepted.getPhone(),reply.getPhone().stream().filter(listPhone -> listPhone.contains("841-874-7462")).toList());
+    }
+    @Test
+    void fireTest() throws IOException {
+        FireReplyPersonDTO reply = personService.fire("1509 Culver St");
+        SubFireReplyReplyInfoPerson personInfoExcepted = new SubFireReplyReplyInfoPerson("Boyd","841-874-6512","03/06/1984", List.of("aznol:350mg, hydrapermazol:100mg"), List.of("nillacilan"));
+        Assertions.assertEquals(List.of(personInfoExcepted).toString(),reply.getInfoPerson().stream().filter(listpersonInfo -> listpersonInfo.getLastName().equals("Boyd") && listpersonInfo.getBirthdate().equals("03/06/1984")).toList().toString());
     }
 }

@@ -4,12 +4,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openclassrooms.safetynet.dto.responses.ChildAlertReplyPersonDTO;
+import com.openclassrooms.safetynet.dto.responses.FireReplyPersonDTO;
 import com.openclassrooms.safetynet.dto.responses.FireStationReplyPersonDTO;
 import com.openclassrooms.safetynet.dto.responses.PhoneAlertReplyPersonDTO;
-import com.openclassrooms.safetynet.dto.responses.submodels.SubChildAlertReplyAdultFamily;
-import com.openclassrooms.safetynet.dto.responses.submodels.SubChildAlertReplyChildren;
-import com.openclassrooms.safetynet.dto.responses.submodels.SubFireStationModelReplyForCount;
-import com.openclassrooms.safetynet.dto.responses.submodels.SubFireStationReplyPerson;
+import com.openclassrooms.safetynet.dto.responses.submodels.*;
 import com.openclassrooms.safetynet.models.FireStationModel;
 import com.openclassrooms.safetynet.models.MedicalRecordModel;
 import com.openclassrooms.safetynet.models.PersonModel;
@@ -19,7 +17,10 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 @Service
 public class PersonService {
     ObjectMapper objectMapper = new ObjectMapper();
@@ -120,5 +121,33 @@ public class PersonService {
 
         System.out.println(listPhonePersonFiltered);
         return new PhoneAlertReplyPersonDTO(listPhonePersonFiltered);
+    }
+
+    public FireReplyPersonDTO fire(String address) throws IOException {
+
+        List<SubFireReplyReplyInfoPerson> tests = Stream.concat(Stream.of(manageJsonData.personReaderJsonData()),Stream.of(manageJsonData.medicalRecordReaderJsonData()))
+                .flatMap(List::stream)
+                .collect(Collectors.groupingBy(model -> {
+                                            if (model instanceof PersonModel personModel) {
+                                                return personModel.getFirstName() + personModel.getLastName();
+                                            } else {
+                                                MedicalRecordModel medicalRecordModel = ((MedicalRecordModel) model);
+                                                return medicalRecordModel.getFirstName() + medicalRecordModel.getLastName();
+                                            }
+                }))
+                .values()
+                .stream()
+                .filter(listconcat ->
+                    listconcat.stream().anyMatch(model -> model instanceof PersonModel personModel
+                                                    && personModel.getAddress().equals(address)))
+                .map(subDto -> {
+                    PersonModel personModel = subDto.stream().filter(PersonModel.class::isInstance).map(PersonModel.class::cast).findAny().orElseThrow();
+                    MedicalRecordModel medicalRecordModel = subDto.stream().filter(MedicalRecordModel.class::isInstance).map(MedicalRecordModel.class::cast).findAny().orElseThrow();
+                    return new SubFireReplyReplyInfoPerson(personModel.getLastName(),personModel.getPhone(),medicalRecordModel.getBirthdate(),medicalRecordModel.getMedications(),medicalRecordModel.getAllergies());
+                })
+                .toList();
+        String stationNumber = manageJsonData.fireStationReaderJsonData().stream()
+                .filter(model -> model.getAddress().equals(address)).map(FireStationModel::getStation).findAny().orElse(null);
+        return  new FireReplyPersonDTO(tests,stationNumber);
     }
 }
