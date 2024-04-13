@@ -30,45 +30,38 @@ public class PersonService {
 
     public FireStationReplyPersonDTO fireStationReply(String stationNumber) throws IOException {
 
-        //convert Collection firestations to flux, filter about stationNumber et create list of address
-        List<String> listAddressFireStationModelFiltered = manageJsonData.fireStationReaderJsonData()
+        List<FireStationModel> fireStationModelList = manageJsonData.fireStationReaderJsonData();
+        List<Map<Boolean, SubFireStationReplyPerson>> necessaryData = Stream.concat(Stream.of(manageJsonData.personReaderJsonData()), Stream.of(manageJsonData.medicalRecordReaderJsonData()))
+                .flatMap(List::stream)
+                .collect(Collectors.groupingBy(model -> {
+                            if (model instanceof PersonModel personModel) {
+                                return personModel.getFirstName() + personModel.getLastName();
+                            } else {
+                                MedicalRecordModel medicalRecordModel = ((MedicalRecordModel) model);
+                                return medicalRecordModel.getFirstName() + medicalRecordModel.getLastName();
+                            }
+                        }
+                ))
+                .values()
                 .stream()
-                .filter(fireStation -> fireStation.getStation().equals(stationNumber))
-                .map(FireStationModel::getAddress)
-                .toList();
+                .filter(listconcat ->
+                        listconcat.stream().anyMatch(person -> person instanceof PersonModel personModel && fireStationModelList.stream().filter(model -> model.getStation().equals(stationNumber)).toList().toString().contains(personModel.getAddress()))
+                )
+                .map(subDto -> {
+                    PersonModel personModel = subDto.stream().filter(PersonModel.class::isInstance).map(PersonModel.class::cast).findAny().orElseThrow();
+                    Boolean countMinorAdult = subDto.stream().filter(MedicalRecordModel.class::isInstance).map(MedicalRecordModel.class::cast).anyMatch(age -> LocalDate.parse(age.getBirthdate(), dateFormatter).until(currentDate).getYears() < 18);
+                    SubFireStationReplyPerson subFireStationReplyPerson = new SubFireStationReplyPerson(personModel.getFirstName(), personModel.getLastName(), personModel.getAddress(), personModel.getCity(), personModel.getZip(), personModel.getPhone());
+                    Map<Boolean, SubFireStationReplyPerson> map = new HashMap<>();
+                    map.put(countMinorAdult, subFireStationReplyPerson);
+                    System.out.println(map);
+                    return map;
+                }).toList();
 
-        //convert Collection persons  to flux,filter about  firestation address and create list of persons.
-        List<PersonModel> listPersonModelFiltered = manageJsonData.personReaderJsonData()
-                .stream()
-                .filter(personModel -> listAddressFireStationModelFiltered.contains(personModel.getAddress())).toList();
-
-        //complete List<SubFireStationReplyPerson> to List<PersonModel> with autocompletion
-        TypeReference<List<SubFireStationReplyPerson>> typeReferenceSubFireStationReplyPerson = new TypeReference<>() {};
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        List<SubFireStationReplyPerson> listSubFireStationReplyPerson = objectMapper.convertValue(listPersonModelFiltered, typeReferenceSubFireStationReplyPerson);
-
-
-        //convert Collection medicalrecords to flux, filter about firstname et lastname in order to find how many minor and adult there are and create a list of MedicalRecord
-        long adultsCount = manageJsonData.medicalRecordReaderJsonData()
-                .stream()
-                .filter(medicalRecordModel -> listSubFireStationReplyPerson
-                        .stream().anyMatch(replyPerson -> medicalRecordModel.getFirstName().equals(replyPerson.getFirstName())
-                                && medicalRecordModel.getLastName().equals(replyPerson.getLastName())
-                                && (LocalDate.parse(medicalRecordModel.getBirthdate(), dateFormatter).until(currentDate).getYears() > 18)
-                        )).count();
-        long minorsCount = manageJsonData.medicalRecordReaderJsonData()
-                .stream()
-                .filter(medicalRecordModel -> listSubFireStationReplyPerson
-                        .stream().anyMatch(replyPerson -> medicalRecordModel.getFirstName().equals(replyPerson.getFirstName())
-                                && medicalRecordModel.getLastName().equals(replyPerson.getLastName())
-                                && (LocalDate.parse(medicalRecordModel.getBirthdate(), dateFormatter).until(currentDate).getYears() < 18)
-                        )).count();
-
-        SubFireStationModelReplyForCount countPerson = new SubFireStationModelReplyForCount(String.valueOf(adultsCount), String.valueOf(minorsCount));
-
-    // initialize DTO reply
-
-        return new FireStationReplyPersonDTO(listSubFireStationReplyPerson, countPerson);
+        List<SubFireStationReplyPerson> reply = necessaryData.stream().flatMap(model -> model.values().stream()).toList();
+        long minor = necessaryData.stream().filter(booleanMinor -> booleanMinor.containsKey(true)).count();
+        long adult = necessaryData.stream().filter(booleanAdult -> booleanAdult.containsKey(false)).count();
+        SubFireStationModelReplyForCount subFireStationModelReplyForCount = new SubFireStationModelReplyForCount(String.valueOf(adult), String.valueOf(minor));
+        return new FireStationReplyPersonDTO(reply, subFireStationModelReplyForCount);
     }
 
     public ChildAlertReplyPersonDTO childAlertReply(String address) throws IOException {
@@ -92,7 +85,8 @@ public class PersonService {
                 )).toList();
 
         //complete List<SubChildAlertReplyAdultFamily> to List<PersonModel> with autocompletion
-        TypeReference<List<SubChildAlertReplyAdultFamily>> typeReferenceSubChildAlertReplyAdultFamily = new TypeReference<>() {};
+        TypeReference<List<SubChildAlertReplyAdultFamily>> typeReferenceSubChildAlertReplyAdultFamily = new TypeReference<>() {
+        };
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         List<SubChildAlertReplyAdultFamily> listSubChildAlertAdultFamily = objectMapper.convertValue(listAdultFiltered, typeReferenceSubChildAlertReplyAdultFamily);
 
@@ -125,29 +119,29 @@ public class PersonService {
 
     public FireReplyPersonDTO fire(String address) throws IOException {
 
-        List<SubFireReplyReplyInfoPerson> tests = Stream.concat(Stream.of(manageJsonData.personReaderJsonData()),Stream.of(manageJsonData.medicalRecordReaderJsonData()))
+        List<SubFireReplyReplyInfoPerson> tests = Stream.concat(Stream.of(manageJsonData.personReaderJsonData()), Stream.of(manageJsonData.medicalRecordReaderJsonData()))
                 .flatMap(List::stream)
                 .collect(Collectors.groupingBy(model -> {
-                                            if (model instanceof PersonModel personModel) {
-                                                return personModel.getFirstName() + personModel.getLastName();
-                                            } else {
-                                                MedicalRecordModel medicalRecordModel = ((MedicalRecordModel) model);
-                                                return medicalRecordModel.getFirstName() + medicalRecordModel.getLastName();
-                                            }
+                    if (model instanceof PersonModel personModel) {
+                        return personModel.getFirstName() + personModel.getLastName();
+                    } else {
+                        MedicalRecordModel medicalRecordModel = ((MedicalRecordModel) model);
+                        return medicalRecordModel.getFirstName() + medicalRecordModel.getLastName();
+                    }
                 }))
                 .values()
                 .stream()
                 .filter(listconcat ->
-                    listconcat.stream().anyMatch(model -> model instanceof PersonModel personModel
-                                                    && personModel.getAddress().equals(address)))
+                        listconcat.stream().anyMatch(model -> model instanceof PersonModel personModel
+                                && personModel.getAddress().equals(address)))
                 .map(subDto -> {
                     PersonModel personModel = subDto.stream().filter(PersonModel.class::isInstance).map(PersonModel.class::cast).findAny().orElseThrow();
                     MedicalRecordModel medicalRecordModel = subDto.stream().filter(MedicalRecordModel.class::isInstance).map(MedicalRecordModel.class::cast).findAny().orElseThrow();
-                    return new SubFireReplyReplyInfoPerson(personModel.getLastName(),personModel.getPhone(),medicalRecordModel.getBirthdate(),medicalRecordModel.getMedications(),medicalRecordModel.getAllergies());
+                    return new SubFireReplyReplyInfoPerson(personModel.getLastName(), personModel.getPhone(), medicalRecordModel.getBirthdate(), medicalRecordModel.getMedications(), medicalRecordModel.getAllergies());
                 })
                 .toList();
         String stationNumber = manageJsonData.fireStationReaderJsonData().stream()
                 .filter(model -> model.getAddress().equals(address)).map(FireStationModel::getStation).findAny().orElse(null);
-        return  new FireReplyPersonDTO(tests,stationNumber);
+        return new FireReplyPersonDTO(tests, stationNumber);
     }
 }
