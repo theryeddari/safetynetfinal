@@ -1,5 +1,6 @@
 package com.openclassrooms.safetynet.dto.responses;
 
+import com.openclassrooms.safetynet.dto.responses.submodels.SubStationsReplyInfoPersonByAddress;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
@@ -10,8 +11,5 @@ import java.util.List;
 @AllArgsConstructor
 @ToString
 public class StationsReplyPersonDTO {
-    String address;
-    String city;
-    int zip;
-    List<FireReplyPersonDTO> personsAtAddress;
+    List<SubStationsReplyInfoPersonByAddress> listHome;
 }
