@@ -1,9 +1,6 @@
 package com.openclassrooms.safetynet.services;
 
-import com.openclassrooms.safetynet.dto.responses.ChildAlertReplyPersonDTO;
-import com.openclassrooms.safetynet.dto.responses.FireReplyPersonDTO;
-import com.openclassrooms.safetynet.dto.responses.FireStationReplyPersonDTO;
-import com.openclassrooms.safetynet.dto.responses.PhoneAlertReplyPersonDTO;
+import com.openclassrooms.safetynet.dto.responses.*;
 import com.openclassrooms.safetynet.dto.responses.submodels.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -11,6 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @SpringBootTest
@@ -50,4 +50,18 @@ class PersonServiceTest {
         SubFireReplyReplyInfoPerson personInfoExcepted = new SubFireReplyReplyInfoPerson("Boyd","841-874-6512","03/06/1984", List.of("aznol:350mg, hydrapermazol:100mg"), List.of("nillacilan"));
         Assertions.assertEquals(List.of(personInfoExcepted).toString(),reply.getInfoPerson().stream().filter(listpersonInfo -> listpersonInfo.getLastName().equals("Boyd") && listpersonInfo.getBirthdate().equals("03/06/1984")).toList().toString());
     }
+    @Test
+    void StationsTest() throws IOException {
+       StationsReplyPersonDTO reply = personService.floodStation(new ArrayList<>(Arrays.asList("1", "2")));
+       SubStationsReplyInfoPerson preExcepted1InfoPerson = new SubStationsReplyInfoPerson("Cadigan","841-874-7458","08/06/1945", List.of("tradoxidine:400mg"),List.of(""));
+       SubStationsReplyInfoAddress preExcepted1InfoAddress = new SubStationsReplyInfoAddress("951 LoneTree Rd","Culver","97451");
+        SubStationsReplyInfoPerson preExcepted2InfoPerson = new SubStationsReplyInfoPerson("Marrack","841-874-6513","01/03/1989", List.of(""),List.of(""));
+        SubStationsReplyInfoAddress preExcepted2InfoAddress = new SubStationsReplyInfoAddress("29 15th St","Culver","97451");
+
+        Assertions.assertTrue(reply.getListHome().stream().anyMatch(infoAddress -> infoAddress.getInfoAddress().toString().equals(preExcepted1InfoAddress.toString())));
+        Assertions.assertTrue(reply.getListHome().stream().anyMatch(infoAddress -> infoAddress.getInfoPerson().toString().contains(preExcepted1InfoPerson.toString())));
+        Assertions.assertTrue(reply.getListHome().stream().anyMatch(infoAddress -> infoAddress.getInfoAddress().toString().equals(preExcepted2InfoAddress.toString())));
+        Assertions.assertTrue(reply.getListHome().stream().anyMatch(infoAddress -> infoAddress.getInfoPerson().toString().contains(preExcepted2InfoPerson.toString())));
+    }
 }
+

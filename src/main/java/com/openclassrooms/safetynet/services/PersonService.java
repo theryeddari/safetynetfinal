@@ -1,9 +1,6 @@
 package com.openclassrooms.safetynet.services;
 
-import com.openclassrooms.safetynet.dto.responses.ChildAlertReplyPersonDTO;
-import com.openclassrooms.safetynet.dto.responses.FireReplyPersonDTO;
-import com.openclassrooms.safetynet.dto.responses.FireStationReplyPersonDTO;
-import com.openclassrooms.safetynet.dto.responses.PhoneAlertReplyPersonDTO;
+import com.openclassrooms.safetynet.dto.responses.*;
 import com.openclassrooms.safetynet.dto.responses.submodels.*;
 import com.openclassrooms.safetynet.models.FireStationModel;
 import com.openclassrooms.safetynet.models.MedicalRecordModel;
@@ -14,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -120,7 +118,7 @@ public class PersonService {
 
     public FireReplyPersonDTO fire(String address) throws IOException {
 
-        List<SubFireReplyReplyInfoPerson> tests = Stream.concat(Stream.of(manageJsonData.personReaderJsonData()), Stream.of(manageJsonData.medicalRecordReaderJsonData()))
+        List<SubFireReplyReplyInfoPerson> subFireReplyReplyInfoPersonList = Stream.concat(Stream.of(manageJsonData.personReaderJsonData()), Stream.of(manageJsonData.medicalRecordReaderJsonData()))
                 .flatMap(List::stream)
                 .collect(Collectors.groupingBy(model -> {
                     if (model instanceof PersonModel personModel) {
@@ -132,8 +130,8 @@ public class PersonService {
                 }))
                 .values()
                 .stream()
-                .filter(listconcat ->
-                        listconcat.stream().anyMatch(model -> model instanceof PersonModel personModel
+                .filter(listConcat ->
+                        listConcat.stream().anyMatch(model -> model instanceof PersonModel personModel
                                 && personModel.getAddress().equals(address)))
                 .map(subDto -> {
                     PersonModel personModel = subDto.stream().filter(PersonModel.class::isInstance).map(PersonModel.class::cast).findAny().orElseThrow();
@@ -143,6 +141,55 @@ public class PersonService {
                 .toList();
         String stationNumber = manageJsonData.fireStationReaderJsonData().stream()
                 .filter(model -> model.getAddress().equals(address)).map(FireStationModel::getStation).findAny().orElse(null);
-        return new FireReplyPersonDTO(tests, stationNumber);
+        return new FireReplyPersonDTO(subFireReplyReplyInfoPersonList, stationNumber);
+    }
+    public StationsReplyPersonDTO floodStation(List<String> listStationNumber) throws IOException {
+
+        List<FireStationModel> fireStationModelList = manageJsonData.fireStationReaderJsonData();
+        List<SubStationsReplyInfoPersonByAddress> necessaryData = Stream.concat(Stream.of(manageJsonData.personReaderJsonData()), Stream.of(manageJsonData.medicalRecordReaderJsonData()))
+                .flatMap(List::stream)
+                .collect(Collectors.groupingBy(
+                        model -> {
+                            if (model instanceof PersonModel personModel) {
+                                return personModel.getFirstName() + personModel.getLastName();
+                            }
+                                MedicalRecordModel medicalRecordModel = ((MedicalRecordModel) model);
+                                return medicalRecordModel.getFirstName() + medicalRecordModel.getLastName();
+                        }
+                        ))
+                .values().stream()
+                .collect(Collectors.groupingBy(
+                        group -> {
+                            for (Object model : group) {
+                                if (model instanceof PersonModel personModel) {
+                                    return personModel.getAddress();
+                                }
+                            }
+                            return "UnknownAddress"; //Si aucun PersonModel n'est trouvé
+                        }
+                        ))
+                .values().stream()
+                .filter(group -> group.stream()
+                        .anyMatch(list -> list.stream()
+                                .anyMatch(model -> model instanceof PersonModel personModel
+                                                && listStationNumber.stream().anyMatch(stationNumber -> fireStationModelList.stream().anyMatch(stationAddress -> stationAddress.getStation().equals(stationNumber)
+                                                                && personModel.getAddress().equals(stationAddress.getAddress())
+                                                )))
+                        ))
+                .map(group -> {
+                    List<SubStationsReplyInfoPerson> liste = new ArrayList<>();
+                    SubStationsReplyInfoAddress infoAddress = null;
+                    for (List<?> list : group){
+                        PersonModel personModel = list.stream().filter(PersonModel.class::isInstance).map(PersonModel.class::cast).findAny().orElseThrow();
+                        MedicalRecordModel medicalRecordModel = list.stream().filter(MedicalRecordModel.class::isInstance).map(MedicalRecordModel.class::cast).findAny().orElseThrow();
+                        SubStationsReplyInfoPerson infoPerson = new SubStationsReplyInfoPerson(personModel.getLastName(), personModel.getPhone(), medicalRecordModel.getBirthdate(), medicalRecordModel.getMedications(), medicalRecordModel.getAllergies());
+                        infoAddress = new SubStationsReplyInfoAddress(personModel.getAddress(), personModel.getCity(), personModel.getZip());
+                        liste.add(infoPerson);
+                    }
+                    return new SubStationsReplyInfoPersonByAddress(infoAddress, liste);
+                })
+               .toList();
+
+        return new StationsReplyPersonDTO(necessaryData);
     }
 }
