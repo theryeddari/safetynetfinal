@@ -62,6 +62,13 @@ class PersonServiceTest {
         Assertions.assertTrue(reply.getListHome().stream().anyMatch(infoAddress -> infoAddress.getInfoPerson().toString().contains(preExcepted1InfoPerson.toString())));
         Assertions.assertTrue(reply.getListHome().stream().anyMatch(infoAddress -> infoAddress.getInfoAddress().toString().equals(preExcepted2InfoAddress.toString())));
         Assertions.assertTrue(reply.getListHome().stream().anyMatch(infoAddress -> infoAddress.getInfoPerson().toString().contains(preExcepted2InfoPerson.toString())));
+    } @Test
+    void personInfo() throws IOException {
+        PersonInfoReplyPersonDTO reply = personService.personInfo("John", "Boyd");
+        List<SubPersonInfoReplyPerson> personInfoExcepted =  List.of( new SubPersonInfoReplyPerson("Boyd","1509 Culver St","Culver","97451","jaboyd@email.com","03/06/1984",List.of("aznol:350mg, hydrapermazol:100mg"), List.of("nillacilan")));
+        Assertions.assertTrue(reply.getListPerson().toString().contains(personInfoExcepted.toString()));
     }
+
+
 }
 

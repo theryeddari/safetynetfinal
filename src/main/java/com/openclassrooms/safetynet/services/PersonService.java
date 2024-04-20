@@ -146,7 +146,7 @@ public class PersonService {
     public StationsReplyPersonDTO floodStation(List<String> listStationNumber) throws IOException {
 
         List<FireStationModel> fireStationModelList = manageJsonData.fireStationReaderJsonData();
-        List<SubStationsReplyInfoPersonByAddress> necessaryData = Stream.concat(Stream.of(manageJsonData.personReaderJsonData()), Stream.of(manageJsonData.medicalRecordReaderJsonData()))
+        List<SubStationsReplyInfoPersonByAddress> subStationsReplyInfoPersonByAddressList = Stream.concat(Stream.of(manageJsonData.personReaderJsonData()), Stream.of(manageJsonData.medicalRecordReaderJsonData()))
                 .flatMap(List::stream)
                 .collect(Collectors.groupingBy(
                         model -> {
@@ -190,6 +190,30 @@ public class PersonService {
                 })
                .toList();
 
-        return new StationsReplyPersonDTO(necessaryData);
+        return new StationsReplyPersonDTO(subStationsReplyInfoPersonByAddressList);
+    }
+
+    public PersonInfoReplyPersonDTO personInfo(String firstName, String lastName) throws IOException {
+
+        List<SubPersonInfoReplyPerson> subPersonInfoReplyPersonList = Stream.concat(Stream.of(manageJsonData.personReaderJsonData()), Stream.of(manageJsonData.medicalRecordReaderJsonData()))
+                .flatMap(List::stream)
+                .collect(Collectors.groupingBy(
+                        model -> {
+                            if (model instanceof PersonModel personModel) {
+                                return personModel.getFirstName() + personModel.getLastName();
+                            }
+                            MedicalRecordModel medicalRecordModel = ((MedicalRecordModel) model);
+                            return medicalRecordModel.getFirstName() + medicalRecordModel.getLastName();
+                        }
+                ))
+                .values().stream()
+                .filter(group -> group.stream().anyMatch( model -> model instanceof PersonModel personModel && personModel.getFirstName().equals(firstName) && personModel.getLastName().equals(lastName)))
+                .map(subDto -> {
+                    PersonModel personModel = subDto.stream().filter(PersonModel.class::isInstance).map(PersonModel.class::cast).findAny().orElseThrow();
+                    MedicalRecordModel medicalRecordModel = subDto.stream().filter(MedicalRecordModel.class::isInstance).map(MedicalRecordModel.class::cast).findAny().orElseThrow();
+                    return new SubPersonInfoReplyPerson(personModel.getLastName(), personModel.getAddress(), personModel.getCity(), personModel.getZip(), personModel.getEmail(), medicalRecordModel.getBirthdate(),medicalRecordModel.getMedications(),medicalRecordModel.getAllergies());
+                })
+                .toList();
+        return new PersonInfoReplyPersonDTO(subPersonInfoReplyPersonList);
     }
 }
