@@ -11,5 +11,8 @@ import java.util.List;
 @AllArgsConstructor
 @ToString
 public class StationsReplyPersonDTO {
+    public StationsReplyPersonDTO(){
+        //constructor for jackson serialisation
+    }
     List<SubStationsReplyInfoPersonByAddress> listHome;
 }

@@ -9,5 +9,8 @@ import java.util.List;
 @AllArgsConstructor
 @ToString
 public class PhoneAlertReplyPersonDTO {
+    public PhoneAlertReplyPersonDTO(){
+        //constructor for jackson serialisation
+    }
     List<String> phone;
 }

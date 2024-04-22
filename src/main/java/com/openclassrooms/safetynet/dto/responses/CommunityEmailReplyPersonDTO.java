@@ -8,5 +8,8 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 public class CommunityEmailReplyPersonDTO {
+    public CommunityEmailReplyPersonDTO(){
+        //constructor for jackson serialisation
+    }
     String mail;
 }

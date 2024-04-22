@@ -12,6 +12,9 @@ import java.util.List;
 @AllArgsConstructor
 @ToString
 public class ChildAlertReplyPersonDTO {
+    public ChildAlertReplyPersonDTO(){
+        //constructor for jackson serialisation
+    }
     List<SubChildAlertReplyChildren> children;
     List<SubChildAlertReplyAdultFamily> identityFamily;
 }
