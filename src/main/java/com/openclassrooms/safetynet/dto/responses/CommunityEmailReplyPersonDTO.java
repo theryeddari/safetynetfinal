@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.util.List;
+
 @Getter
 @AllArgsConstructor
 @ToString
@@ -11,5 +13,5 @@ public class CommunityEmailReplyPersonDTO {
     public CommunityEmailReplyPersonDTO(){
         //constructor for jackson serialisation
     }
-    String mail;
+    List<String> mail;
 }
