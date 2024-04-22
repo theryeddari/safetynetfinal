@@ -216,4 +216,9 @@ public class PersonService {
                 .toList();
         return new PersonInfoReplyPersonDTO(subPersonInfoReplyPersonList);
     }
+
+    public CommunityEmailReplyPersonDTO communityEmail(String city) throws IOException {
+        List<String> listEmail = manageJsonData.personReaderJsonData().stream().filter(filteringCity -> filteringCity.getCity().equals(city)).map(PersonModel::getEmail).toList();
+        return new CommunityEmailReplyPersonDTO(listEmail);
+    }
 }

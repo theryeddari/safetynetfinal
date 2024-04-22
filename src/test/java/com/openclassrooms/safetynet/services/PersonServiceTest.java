@@ -10,7 +10,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 @SpringBootTest
@@ -68,7 +67,12 @@ class PersonServiceTest {
         List<SubPersonInfoReplyPerson> personInfoExcepted =  List.of( new SubPersonInfoReplyPerson("Boyd","1509 Culver St","Culver","97451","jaboyd@email.com","03/06/1984",List.of("aznol:350mg, hydrapermazol:100mg"), List.of("nillacilan")));
         Assertions.assertTrue(reply.getListPerson().toString().contains(personInfoExcepted.toString()));
     }
-
+    @Test
+    void communityEmail() throws IOException {
+        CommunityEmailReplyPersonDTO reply = personService.communityEmail("Culver");
+        String exceptedMail = "jaboyd@email.com";
+        Assertions.assertTrue(reply.getMail().contains(exceptedMail));
+    }
 
 }
 
