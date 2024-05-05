@@ -10,7 +10,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 public class FireStationModel {
-    public FireStationModel(){        //constructor for jackson serialisation
+    public FireStationModel(){
         //constructor for jackson serialisation
     }
     String address;
