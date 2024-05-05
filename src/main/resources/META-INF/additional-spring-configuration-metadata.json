@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "path.file",
+      "type": "java.lang.String",
+      "description": "chemin d'accés au fichier json par défaut, qui peut etre modifier pour les tests"
+  }
+] }

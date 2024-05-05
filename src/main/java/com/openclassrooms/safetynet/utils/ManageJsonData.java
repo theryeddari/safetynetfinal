@@ -5,52 +5,66 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openclassrooms.safetynet.models.FireStationModel;
 import com.openclassrooms.safetynet.models.MedicalRecordModel;
 import com.openclassrooms.safetynet.models.PersonModel;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Component
 public class ManageJsonData {
-    ObjectMapper objectMapper = new ObjectMapper();
-    File file = new File("src/main/resources/data.json");
+    ObjectMapper objectMapper;
+    @Value("${path.file}")
+    String path;
+    File file;
+    Map<String, Object> dataJson = new HashMap<>();
 
-    private Map<String, Object> globalReaderJsonData() throws IOException {
-        TypeReference<Map<String, Object>> typeReferenceJsonData = new TypeReference<>() {
-        };
-       return  objectMapper.readValue(file, typeReferenceJsonData);
+    @PostConstruct
+    public void init() throws IOException {
+        this.file  = new File(path);
+        globalReaderJsonData();
     }
 
-    public List<FireStationModel> fireStationReaderJsonData() throws IOException {
-        TypeReference<List<FireStationModel>> typeReferenceFireStationModel = new TypeReference<>() {};
-        return objectMapper.convertValue(globalReaderJsonData().get("firestations"), typeReferenceFireStationModel);
+    public ManageJsonData() {
+        this.objectMapper = new ObjectMapper();
     }
-    public List<PersonModel> personReaderJsonData() throws IOException {
-        TypeReference<List<PersonModel>> typeReferencePersonModel = new TypeReference<>() {};
-        return objectMapper.convertValue(globalReaderJsonData().get("persons"), typeReferencePersonModel);
+    private void globalReaderJsonData() throws IOException {
+        this.dataJson = objectMapper.readValue(file, new TypeReference<>() {});
     }
-    public List<MedicalRecordModel> medicalRecordReaderJsonData() throws IOException {
-        TypeReference<List<MedicalRecordModel>> typeReferenceMedicalRecordModel = new TypeReference<>() {};
-        return objectMapper.convertValue(globalReaderJsonData().get("medicalrecords"), typeReferenceMedicalRecordModel);
+
+    public List<FireStationModel> fireStationReaderJsonData() {
+        return objectMapper.convertValue(dataJson.get("firestations"), new TypeReference<>() {});
     }
-    public FireStationModel testFireStationReaderByReturn(String address) throws IOException {
+    public  List<PersonModel>  personReaderJsonData() {
+        return objectMapper.convertValue(dataJson.get("persons"), new TypeReference<>() {});
+    }
+    public List<MedicalRecordModel> medicalRecordReaderJsonData() {
+        return objectMapper.convertValue(dataJson.get("medicalrecords"), new TypeReference<>() {});
+    }
+    public FireStationModel testFireStationReaderByReturn(String address) {
        return fireStationReaderJsonData().stream().filter(listDTO -> listDTO.getAddress().equals(address))
                .findFirst()
                 .orElse(null);
     }
-    public PersonModel testPersonReaderByReturn(String firstName, String lastName) throws IOException {
+    public PersonModel testPersonReaderByReturn(String firstName, String lastName) {
         return personReaderJsonData().stream().filter(listDTO -> listDTO.getFirstName().equals(firstName)
                 && listDTO.getLastName().equals(lastName))
                 .findFirst()
                 .orElse(null);
     }
-    public MedicalRecordModel testMedicalRecordReaderByReturn(String firstName, String lastName) throws IOException {
+    public MedicalRecordModel testMedicalRecordReaderByReturn(String firstName, String lastName) {
         return medicalRecordReaderJsonData().stream().filter(listDTO -> listDTO.getFirstName().equals(firstName)
                         && listDTO.getLastName().equals(lastName))
                 .findFirst()
                 .orElse(null);
     }
-    //méthodes pour vérifier la class en renvoyer chaque modéle  person station medical record (pour me permettre de tester). couverture de test.
+
+   public void personWriterJsonData(List<PersonModel> list) throws IOException {
+        this.dataJson.replace("persons", list);
+       objectMapper.writer(new OutputFormatIndentationJsonData()).writeValue(file,dataJson);
+    }
 }
