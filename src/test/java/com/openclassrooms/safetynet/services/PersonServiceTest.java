@@ -7,11 +7,8 @@ import com.openclassrooms.safetynet.models.PersonModel;
 import com.openclassrooms.safetynet.utils.ManageJsonData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 
 import java.io.IOException;
@@ -19,12 +16,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
 class PersonServiceTest {
-
-    @InjectMocks
     @Autowired
     PersonService personService;
     @SpyBean
@@ -36,7 +33,6 @@ class PersonServiceTest {
     @Test
     void fireStationReplyTest() {
         FireStationReplyPersonDTO reply = personService.fireStationReply("2");
-
         SubFireStationModelReplyForCount countExcepted = new SubFireStationModelReplyForCount("4", "1");
         SubFireStationReplyPerson personExcepted = new SubFireStationReplyPerson("Jonanathan","Marrack","29 15th St","Culver","97451","841-874-6513");
 
@@ -94,7 +90,8 @@ class PersonServiceTest {
     void addPersonTest() throws IOException {
         List<PersonModel> listPersonMock = new ArrayList<>(List.of(new PersonModel("Jean", "Jacque", "bla", "bla", "", "", "")));
         when(manageJsonData.personReaderJsonData()).thenReturn(listPersonMock);
-        AddPersonDto newPerson = new AddPersonDto("thery","eddari","","","","","");
+        doNothing().when(manageJsonData).personWriterJsonData(anyList());
+        AddPersonDto newPerson = new AddPersonDto("thery","eddari","blabla","","","","");
         personService.addPerson(newPerson);
         Assertions.assertTrue(listPersonMock.stream().anyMatch(person -> person.getLastName().equals(newPerson.getLastName()) && person.getFirstName().equals(newPerson.getFirstName())));
     }
