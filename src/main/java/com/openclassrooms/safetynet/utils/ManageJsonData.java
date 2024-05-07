@@ -29,8 +29,8 @@ public class ManageJsonData {
         globalReaderJsonData();
     }
 
-    public ManageJsonData() {
-        this.objectMapper = new ObjectMapper();
+    public ManageJsonData(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
     }
     private void globalReaderJsonData() throws IOException {
         this.dataJson = objectMapper.readValue(file, new TypeReference<>() {});
@@ -65,6 +65,6 @@ public class ManageJsonData {
 
    public void personWriterJsonData(List<PersonModel> list) throws IOException {
         this.dataJson.replace("persons", list);
-       objectMapper.writer(new OutputFormatIndentationJsonData()).writeValue(file,dataJson);
+        objectMapper.writer(new OutputFormatIndentationJsonData()).writeValue(file,dataJson);
     }
 }
