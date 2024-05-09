@@ -1,6 +1,6 @@
 package com.openclassrooms.safetynet.services;
 
-import com.openclassrooms.safetynet.dto.requests.AddPersonDto;
+import com.openclassrooms.safetynet.dto.requests.AddOrUpdatePersonDto;
 import com.openclassrooms.safetynet.dto.responses.ChildAlertReplyPersonDTO;
 import com.openclassrooms.safetynet.dto.responses.FireReplyPersonDTO;
 import com.openclassrooms.safetynet.dto.responses.FireStationReplyPersonDTO;
@@ -187,7 +187,7 @@ public class PersonService {
         return new CommunityEmailReplyPersonDTO(listEmail);
     }
 
-    private Stream<? extends List<?>> factoringConcatStreamForGroupingPersonAndMedicalSameProfile(){
+    private Stream<? extends List<?>> factoringConcatStreamForGroupingPersonAndMedicalSameProfile() {
       return Stream.concat(Stream.of(manageJsonData.personReaderJsonData()), Stream.of(manageJsonData.medicalRecordReaderJsonData()))
                 .flatMap(List::stream).collect(Collectors.groupingBy(
                         model -> {
@@ -202,7 +202,7 @@ public class PersonService {
                .stream();
     }
 
-    public void addPerson(AddPersonDto person) throws IOException {
+    public void addPerson(AddOrUpdatePersonDto person) throws IOException {
         List<PersonModel> listPersonsExisting = manageJsonData.personReaderJsonData();
         if (manageJsonData.personReaderJsonData().stream().noneMatch(personExist -> personExist.getLastName().equals(person.getLastName()) && personExist.getFirstName().equals(person.getFirstName()))) {
             listPersonsExisting.add(new PersonModel(person.getFirstName(), person.getLastName(), person.getAddress(), person.getCity(), person.getZip(), person.getPhone(), person.getEmail()));
@@ -210,4 +210,18 @@ public class PersonService {
         manageJsonData.personWriterJsonData(listPersonsExisting);
     }
 
+    public void updatePerson(AddOrUpdatePersonDto updatePerson) throws IOException {
+        List<PersonModel> listPersonsExisting = manageJsonData.personReaderJsonData();
+        //get the reference to the filtered person object
+        Optional<PersonModel> wantedPersonUpdate = listPersonsExisting.stream().filter(person -> person.getFirstName().equals(updatePerson.getFirstName()) && person.getLastName().equals(updatePerson.getLastName())).findFirst();
+        //if there is a reference then I access the object using this and modify the properties of the person
+        wantedPersonUpdate.ifPresent(modifyPerson -> {
+            modifyPerson.setCity(updatePerson.getCity());
+            modifyPerson.setPhone(updatePerson.getPhone());
+            modifyPerson.setEmail(updatePerson.getEmail());
+            modifyPerson.setAddress(updatePerson.getAddress());
+            modifyPerson.setZip(updatePerson.getZip());
+        });
+        manageJsonData.personWriterJsonData(listPersonsExisting);
+    }
 }
