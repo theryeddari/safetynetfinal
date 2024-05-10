@@ -1,6 +1,7 @@
 package com.openclassrooms.safetynet.services;
 
 import com.openclassrooms.safetynet.dto.requests.AddOrUpdatePersonDto;
+import com.openclassrooms.safetynet.dto.requests.DeletePersonDto;
 import com.openclassrooms.safetynet.dto.responses.*;
 import com.openclassrooms.safetynet.dto.responses.submodels.*;
 import com.openclassrooms.safetynet.models.PersonModel;
@@ -32,7 +33,7 @@ class PersonServiceTest {
     }
 
     @Test
-    void fireStationReplyTest() throws IOException {
+    void fireStationReplyTest() {
         FireStationReplyPersonDTO reply = personService.fireStationReply("2");
         SubFireStationModelReplyForCount countExcepted = new SubFireStationModelReplyForCount("4", "1");
         SubFireStationReplyPerson personExcepted = new SubFireStationReplyPerson("Jonanathan","Marrack","29 15th St","Culver","97451","841-874-6513");
@@ -41,7 +42,7 @@ class PersonServiceTest {
         Assertions.assertEquals(List.of(personExcepted).toString(), reply.getPersons().stream().filter(listPerson -> listPerson.getFirstName().equals("Jonanathan") && listPerson.getLastName().equals("Marrack")).toList().toString());
     }
     @Test
-    void childAlertReplyTest() throws IOException {
+    void childAlertReplyTest() {
         ChildAlertReplyPersonDTO reply = personService.childAlertReply("1509 Culver St");
 
         SubChildAlertReplyChildren childExcepted = new SubChildAlertReplyChildren("Tenley","Boyd","02/18/2012");
@@ -51,20 +52,20 @@ class PersonServiceTest {
         Assertions.assertEquals(List.of(childExcepted).toString(),reply.getChildren().stream().filter(listChildren -> listChildren.getFirstName().equals("Tenley") && listChildren.getLastName().equals("Boyd")).toList().toString());
     }
     @Test
-    void phoneAlertReplyTest() throws IOException {
+    void phoneAlertReplyTest() {
         PhoneAlertReplyPersonDTO reply = personService.phoneAlert("1");
         PhoneAlertReplyPersonDTO phoneExcepted = new PhoneAlertReplyPersonDTO(List.of("841-874-7462"));
 
         Assertions.assertEquals(phoneExcepted.getPhone(),reply.getPhone().stream().filter(listPhone -> listPhone.contains("841-874-7462")).toList());
     }
     @Test
-    void fireTest() throws IOException {
+    void fireTest() {
         FireReplyPersonDTO reply = personService.fire("1509 Culver St");
         SubFireReplyReplyInfoPerson personInfoExcepted = new SubFireReplyReplyInfoPerson("Boyd","841-874-6512","03/06/1984", List.of("aznol:350mg, hydrapermazol:100mg"), List.of("nillacilan"));
         Assertions.assertEquals(List.of(personInfoExcepted).toString(),reply.getInfoPerson().stream().filter(listpersonInfo -> listpersonInfo.getLastName().equals("Boyd") && listpersonInfo.getBirthdate().equals("03/06/1984")).toList().toString());
     }
     @Test
-    void StationsTest() throws IOException {
+    void StationsTest() {
        StationsReplyPersonDTO reply = personService.floodStation(new ArrayList<>(Arrays.asList("1", "2")));
        SubStationsReplyInfoPerson preExcepted1InfoPerson = new SubStationsReplyInfoPerson("Cadigan","841-874-7458","08/06/1945", List.of("tradoxidine:400mg"),List.of(""));
        SubStationsReplyInfoAddress preExcepted1InfoAddress = new SubStationsReplyInfoAddress("951 LoneTree Rd","Culver","97451");
@@ -76,13 +77,13 @@ class PersonServiceTest {
         Assertions.assertTrue(reply.getListHome().stream().anyMatch(infoAddress -> infoAddress.getInfoAddress().toString().equals(preExcepted2InfoAddress.toString())));
         Assertions.assertTrue(reply.getListHome().stream().anyMatch(infoAddress -> infoAddress.getInfoPerson().toString().contains(preExcepted2InfoPerson.toString())));
     } @Test
-    void personInfoTest() throws IOException {
+    void personInfoTest() {
         PersonInfoReplyPersonDTO reply = personService.personInfo("John", "Boyd");
         List<SubPersonInfoReplyPerson> personInfoExcepted =  List.of( new SubPersonInfoReplyPerson("Boyd","1509 Culver St","Culver","97451","jaboyd@email.com","03/06/1984",List.of("aznol:350mg, hydrapermazol:100mg"), List.of("nillacilan")));
         Assertions.assertTrue(reply.getListPerson().toString().contains(personInfoExcepted.toString()));
     }
     @Test
-    void communityEmailTest() throws IOException {
+    void communityEmailTest() {
         CommunityEmailReplyPersonDTO reply = personService.communityEmail("Culver");
         String exceptedMail = "jaboyd@email.com";
         Assertions.assertTrue(reply.getMail().contains(exceptedMail));
@@ -119,5 +120,21 @@ class PersonServiceTest {
                         && person.getCity().equals(updatePerson.getCity())
                         && person.getZip().equals(updatePerson.getZip())
         ));
+    }
+    @Test
+    void deletePersonTest() throws IOException {
+        DeletePersonDto deletePerson = new DeletePersonDto("John","Boyd");
+        List<PersonModel> listUpdatedPersons = new ArrayList<>();
+        doNothing().when(manageJsonDataSpy).personWriterJsonData(anyList());
+        doAnswer(invocation -> {
+                    listUpdatedPersons.addAll(invocation.getArgument(0));
+                    return null;
+                }
+        ).when(manageJsonDataSpy).personWriterJsonData(anyList());
+        personService.deletePerson(deletePerson);
+        System.out.println(listUpdatedPersons);
+        Assertions.assertTrue(listUpdatedPersons.stream().noneMatch(person ->
+                person.getLastName().equals(deletePerson.getLastName()) && person.getFirstName().equals(deletePerson.getFirstName()))
+        );
     }
 }
