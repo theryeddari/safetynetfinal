@@ -1,6 +1,7 @@
 package com.openclassrooms.safetynet.services;
 
 import com.openclassrooms.safetynet.dto.requests.AddOrUpdatePersonDto;
+import com.openclassrooms.safetynet.dto.requests.DeletePersonDto;
 import com.openclassrooms.safetynet.dto.responses.ChildAlertReplyPersonDTO;
 import com.openclassrooms.safetynet.dto.responses.FireReplyPersonDTO;
 import com.openclassrooms.safetynet.dto.responses.FireStationReplyPersonDTO;
@@ -223,5 +224,12 @@ public class PersonService {
             modifyPerson.setZip(updatePerson.getZip());
         });
         manageJsonData.personWriterJsonData(listPersonsExisting);
+    }
+
+    public void deletePerson(DeletePersonDto deletePerson) throws IOException {
+        List<PersonModel> listPersonsExisting = manageJsonData.personReaderJsonData();
+        if(listPersonsExisting.removeIf(person -> person.getFirstName().equals(deletePerson.getFirstName()) && person.getLastName().equals(deletePerson.getLastName()))){
+            manageJsonData.personWriterJsonData(listPersonsExisting);
+        } //TODO:: add exception if not found.
     }
 }
