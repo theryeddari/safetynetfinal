@@ -1,6 +1,7 @@
 package com.openclassrooms.safetynet.services;
 
 import com.openclassrooms.safetynet.dto.requests.AddFireStationDto;
+import com.openclassrooms.safetynet.dto.requests.DeleteFireStationDto;
 import com.openclassrooms.safetynet.dto.requests.UpdateFireStationDto;
 import com.openclassrooms.safetynet.models.FireStationModel;
 import com.openclassrooms.safetynet.utils.ManageJsonData;
@@ -54,5 +55,48 @@ class FireStationServiceTest {
                 fireStation.getStation().equals(updateFireStation.getNewNumberStation())
                     && fireStation.getAddress().equals(updateFireStation.getAddress())
         ));
+    }
+    @Test
+    void deleteFireStationByNumberTest() throws IOException {
+        DeleteFireStationDto deleteFireStation = new DeleteFireStationDto("","2");
+        List<FireStationModel> listUpdatedFireStation = new ArrayList<>();
+        doNothing().when(manageJsonDataSpy).fireStationWriterJsonData(anyList());
+        doAnswer(invocation -> {
+            listUpdatedFireStation.addAll(invocation.getArgument(0));
+            return null;
+        }).when(manageJsonDataSpy).fireStationWriterJsonData(anyList());
+        fireStationService.deleteFireStation(deleteFireStation);
+        Assertions.assertTrue(listUpdatedFireStation.stream().noneMatch(fireStation ->
+                fireStation.getStation().equals(deleteFireStation.getStation()))
+        );
+    }
+    @Test
+    void deleteFireStationByAddressTest() throws IOException {
+        DeleteFireStationDto deleteFireStation = new DeleteFireStationDto("112 Steppes Pl","");
+        List<FireStationModel> listUpdatedFireStation = new ArrayList<>();
+        doNothing().when(manageJsonDataSpy).fireStationWriterJsonData(anyList());
+        doAnswer(invocation -> {
+            listUpdatedFireStation.addAll(invocation.getArgument(0));
+            return null;
+        }).when(manageJsonDataSpy).fireStationWriterJsonData(anyList());
+        fireStationService.deleteFireStation(deleteFireStation);
+        Assertions.assertTrue(listUpdatedFireStation.stream().noneMatch(fireStation ->
+                fireStation.getAddress().equals(deleteFireStation.getAddress()))
+        );
+    }
+    @Test
+    void deleteFireStationByAddressAndNumberTest() throws IOException {
+        DeleteFireStationDto deleteFireStation = new DeleteFireStationDto("748 Townings Dr","3");
+        List<FireStationModel> listUpdatedFireStation = new ArrayList<>();
+        doNothing().when(manageJsonDataSpy).fireStationWriterJsonData(anyList());
+        doAnswer(invocation -> {
+            listUpdatedFireStation.addAll(invocation.getArgument(0));
+            return null;
+        }).when(manageJsonDataSpy).fireStationWriterJsonData(anyList());
+        fireStationService.deleteFireStation(deleteFireStation);
+        Assertions.assertTrue(listUpdatedFireStation.stream().noneMatch(fireStation ->
+                fireStation.getAddress().equals(deleteFireStation.getAddress())
+                        && fireStation.getStation().equals(deleteFireStation.getStation()))
+        );
     }
 }
