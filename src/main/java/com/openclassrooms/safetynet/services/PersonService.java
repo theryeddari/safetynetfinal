@@ -33,8 +33,6 @@ public class PersonService {
 
     public PersonService(ManageJsonData manageJsonData) {
         this.manageJsonData = manageJsonData;
-
-        // pour faire remonter l'exception de manageJsonData car dans son constructor nous lancer une  méthode qui peut lever une exeption.
     }
 
     public FireStationReplyPersonDTO fireStationReply(String stationNumber) {
@@ -205,7 +203,7 @@ public class PersonService {
 
     public void addPerson(AddOrUpdatePersonDto person) throws IOException {
         List<PersonModel> listPersonsExisting = manageJsonData.personReaderJsonData();
-        if (manageJsonData.personReaderJsonData().stream().noneMatch(personExist -> personExist.getLastName().equals(person.getLastName()) && personExist.getFirstName().equals(person.getFirstName()))) {
+        if (listPersonsExisting.stream().noneMatch(personExist -> personExist.getLastName().equals(person.getLastName()) && personExist.getFirstName().equals(person.getFirstName()))) {
             listPersonsExisting.add(new PersonModel(person.getFirstName(), person.getLastName(), person.getAddress(), person.getCity(), person.getZip(), person.getPhone(), person.getEmail()));
         }
         manageJsonData.personWriterJsonData(listPersonsExisting);
