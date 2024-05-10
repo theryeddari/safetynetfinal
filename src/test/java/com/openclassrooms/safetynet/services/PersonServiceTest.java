@@ -94,6 +94,8 @@ class PersonServiceTest {
         List<PersonModel> listDataJsonPersonForMock = new ArrayList<>(List.of(new PersonModel("Jean", "Jacque", "bla", "bla", "", "", "")));
         //stub the mock method to introduce our list into the method
         when(manageJsonDataSpy.personReaderJsonData()).thenReturn(listDataJsonPersonForMock);
+        //indicates not to launch the write method on the file
+        doNothing().when(manageJsonDataSpy).personWriterJsonData(anyList());
         //person to add
         AddOrUpdatePersonDto newPerson = new AddOrUpdatePersonDto("thery","eddari","","","","","");
         personService.addPerson(newPerson);
