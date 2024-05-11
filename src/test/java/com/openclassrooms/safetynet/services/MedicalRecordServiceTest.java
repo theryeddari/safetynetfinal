@@ -1,6 +1,7 @@
 package com.openclassrooms.safetynet.services;
 
 import com.openclassrooms.safetynet.dto.requests.AddOrUpdateMedicalRecordDto;
+import com.openclassrooms.safetynet.dto.requests.DeleteMedicalRecordDto;
 import com.openclassrooms.safetynet.models.MedicalRecordModel;
 import com.openclassrooms.safetynet.utils.ManageJsonData;
 import org.junit.jupiter.api.Assertions;
@@ -55,5 +56,20 @@ public class MedicalRecordServiceTest {
                         && medicalRecord.getMedications().equals(updateMedicalRecord.getMedications())
                         && medicalRecord.getAllergies().equals(updateMedicalRecord.getAllergies())
         ));
+    }
+    @Test
+    void deleteMedicalRecordTest() throws IOException {
+        DeleteMedicalRecordDto deleteMedicalRecord = new DeleteMedicalRecordDto("John","Boyd");
+        List<MedicalRecordModel> listDeletedMedicalRecord = new ArrayList<>();
+        doNothing().when(manageJsonDataSpy).medicalRecordWriterJsonData(anyList());
+        doAnswer(invocation -> {
+            listDeletedMedicalRecord.addAll(invocation.getArgument(0));
+            return null;
+        }).when(manageJsonDataSpy).medicalRecordWriterJsonData(anyList());
+        medicalRecordService.deleteMedicalRecord(deleteMedicalRecord);
+        Assertions.assertTrue(listDeletedMedicalRecord.stream().noneMatch(medicalRecord ->
+                medicalRecord.getLastName().equals(deleteMedicalRecord.getLastName())
+                && medicalRecord.getFirstName().equals(deleteMedicalRecord.getFirstName()))
+        );
     }
 }
