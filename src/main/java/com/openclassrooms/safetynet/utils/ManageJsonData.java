@@ -72,4 +72,9 @@ public class ManageJsonData {
         this.dataJson.replace("firestations", list);
         objectMapper.writer(new OutputFormatIndentationJsonData()).writeValue(file,dataJson);
     }
+
+    public void medicalRecordWriterJsonData(List<MedicalRecordModel> list) throws IOException {
+        this.dataJson.replace("medicalrecords", list);
+        objectMapper.writer(new OutputFormatIndentationJsonData()).writeValue(file,dataJson);
+    }
 }
