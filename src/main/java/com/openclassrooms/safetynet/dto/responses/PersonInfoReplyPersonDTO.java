@@ -11,6 +11,10 @@ import java.util.List;
 @AllArgsConstructor
 @ToString
 public class PersonInfoReplyPersonDTO {
+    /**
+     * DTO for returning personal information about individuals with a specific first and last name,
+     * including their contact details and medical history.
+     */
     public PersonInfoReplyPersonDTO(){
         //constructor for jackson serialisation
     }

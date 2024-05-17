@@ -10,6 +10,9 @@ import java.util.List;
 @AllArgsConstructor
 @ToString
 public class CommunityEmailReplyPersonDTO {
+    /**
+     * DTO for returning email addresses of all residents in a specified city.
+     */
     public CommunityEmailReplyPersonDTO(){
         //constructor for jackson serialisation
     }

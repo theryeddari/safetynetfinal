@@ -9,6 +9,10 @@ import java.util.List;
 @AllArgsConstructor
 @ToString
 public class PhoneAlertReplyPersonDTO {
+    /**
+     * DTO for returning a list of phone numbers of residents covered by a specific fire station,
+     * to facilitate emergency text message alerts.
+     */
     public PhoneAlertReplyPersonDTO(){
         //constructor for jackson serialisation
     }

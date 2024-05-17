@@ -11,6 +11,10 @@ import java.util.List;
 @AllArgsConstructor
 @ToString
 public class FireReplyPersonDTO {
+    /**
+     * DTO for returning a list of residents at a given address and the associated fire station number,
+     * including their personal details and medical history.
+     */
     public FireReplyPersonDTO(){
         //constructor for jackson serialisation
     }

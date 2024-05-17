@@ -12,6 +12,10 @@ import java.util.List;
 @AllArgsConstructor
 @ToString
 public class ChildAlertReplyPersonDTO {
+    /**
+     * DTO for returning a list of children living at a specified address,
+     * including their personal details and information about other household members.
+     */
     public ChildAlertReplyPersonDTO(){
         //constructor for jackson serialisation
     }
