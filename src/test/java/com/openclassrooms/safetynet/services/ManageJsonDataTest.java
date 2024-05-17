@@ -19,6 +19,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.*;
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -82,7 +83,7 @@ class ManageJsonDataTest {
 
     // Test method for writing JSON data for persons
     @Test
-    void personWriterJsonDataTest() throws IOException, IllegalAccessException, NoSuchFieldException {
+    void personWriterJsonDataTest() throws IOException {
         // Backup the original dataJson field of manageJsonData because it'll be changed by this test and make someWrong behavior in next test because we're using the same instance of ManageJsonData for all class test
         Map<String, Object> dataJsonBackup = saveContextOfManageJsonData();
         // List of persons to write
@@ -118,7 +119,7 @@ class ManageJsonDataTest {
 
     // Test method for writing JSON data for fire stations
     @Test
-    void fireStationWriterJsonDataTest() throws IOException, NoSuchFieldException, IllegalAccessException {
+    void fireStationWriterJsonDataTest() throws IOException {
         // Backup the original dataJson field of manageJsonData because it'll be changed by this test and make someWrong behavior in next test because we're using the same instance of ManageJsonData for all class test
         Map<String, Object> dataJsonBackup = saveContextOfManageJsonData();
         // List of fire stations to write
@@ -145,7 +146,7 @@ class ManageJsonDataTest {
         // Verify the method call
         verify(objectWriterSpy).writeValue(any(StringWriter.class), any());
         // Assert on part of String must be same (-7 this is to rectify the offset in relation to the desired character)
-        int beginIndex = stringWriterJsonOutput.toString().indexOf("firestations") -7;
+        int beginIndex = stringWriterJsonOutput.toString().indexOf("firestations") - 7;
         int endIndex = beginIndex + stringWriterExpectedJsonValue.toString().length();
         assertEquals(stringWriterJsonOutput.toString().substring(beginIndex, endIndex), stringWriterExpectedJsonValue.toString());
 
@@ -156,11 +157,11 @@ class ManageJsonDataTest {
 
     // Test method for writing JSON data for medical records
     @Test
-    void MedicalRecordWriterJsonDataTest() throws IOException, NoSuchFieldException, IllegalAccessException {
+    void MedicalRecordWriterJsonDataTest() throws IOException {
         // Backup the original dataJson field of manageJsonData because it'll be changed by this test and make someWrong behavior in next test because we're using the same instance of ManageJsonData for all class test
         Map<String, Object> dataJsonBackup = saveContextOfManageJsonData();
         // List of medical records to write
-        List<MedicalRecordModel> listMedicalRecord = List.of(new MedicalRecordModel("Thery", "Eddari","",List.of(),List.of()));
+        List<MedicalRecordModel> listMedicalRecord = List.of(new MedicalRecordModel("Thery", "Eddari", "", List.of(), List.of()));
         // StringWriter to store output data from writeValue
         StringWriter stringWriterJsonOutput = new StringWriter();
         // StringWriter to store expected data (response and expected format)
@@ -183,7 +184,7 @@ class ManageJsonDataTest {
         // Verify the method call
         verify(objectWriterSpy).writeValue(any(StringWriter.class), any());
         // Assert on part of String must be same (-7 this is to rectify the offset in relation to the desired character)
-        int beginIndex = stringWriterJsonOutput.toString().indexOf("medicalrecords") -7;
+        int beginIndex = stringWriterJsonOutput.toString().indexOf("medicalrecords") - 7;
         int endIndex = beginIndex + stringWriterExpectedJsonValue.toString().length();
         assertEquals(stringWriterJsonOutput.toString().substring(beginIndex, endIndex), stringWriterExpectedJsonValue.toString());
 
@@ -196,10 +197,10 @@ class ManageJsonDataTest {
     private StringWriter getStringWriterForPerson() {
         StringWriter stringWriterExpectedJsonValue = new StringWriter();
         stringWriterExpectedJsonValue.write(
-                "{"+ System.lineSeparator()
+                "{" + System.lineSeparator()
                         + "  " + "\"persons\": [" + System.lineSeparator()
-                        +"\t{ " + "\"firstName\":\"Thery\", \"lastName\":\"Eddari\", \"address\":\"\", \"city\":\"\", \"zip\":\"\", \"phone\":\"\", \"email\":\"\" }" + System.lineSeparator() +
-                        "  ]"+","
+                        + "\t{ " + "\"firstName\":\"Thery\", \"lastName\":\"Eddari\", \"address\":\"\", \"city\":\"\", \"zip\":\"\", \"phone\":\"\", \"email\":\"\" }" + System.lineSeparator() +
+                        "  ]" + ","
         );
         return stringWriterExpectedJsonValue;
     }
@@ -208,10 +209,10 @@ class ManageJsonDataTest {
     private StringWriter getStringWriterForFireStation() {
         StringWriter stringWriterExpectedJsonValue = new StringWriter();
         stringWriterExpectedJsonValue.write(
-                "],"+ System.lineSeparator()
-                        +"  " + "\"firestations\": [" + System.lineSeparator()
-                        +"\t{ " + "\"address\":\"10 rue des bois\", \"station\":\"20\" }" + System.lineSeparator() +
-                        "  ]" +","
+                "]," + System.lineSeparator()
+                        + "  " + "\"firestations\": [" + System.lineSeparator()
+                        + "\t{ " + "\"address\":\"10 rue des bois\", \"station\":\"20\" }" + System.lineSeparator() +
+                        "  ]" + ","
         );
         return stringWriterExpectedJsonValue;
     }
@@ -220,28 +221,48 @@ class ManageJsonDataTest {
     private StringWriter getStringWriterForMedicalRecord() {
         StringWriter stringWriterExpectedJsonValue = new StringWriter();
         stringWriterExpectedJsonValue.write(
-                "],"+ System.lineSeparator()
+                "]," + System.lineSeparator()
                         + "  " + "\"medicalrecords\": [" + System.lineSeparator()
-                        +"\t{ " + "\"firstName\":\"Thery\", \"lastName\":\"Eddari\", \"birthdate\":\"\", \"medications\":[], \"allergies\":[] }" + System.lineSeparator() +
+                        + "\t{ " + "\"firstName\":\"Thery\", \"lastName\":\"Eddari\", \"birthdate\":\"\", \"medications\":[], \"allergies\":[] }" + System.lineSeparator() +
                         "  ]"
         );
         return stringWriterExpectedJsonValue;
     }
 
     // Method to save the current context of the dataJson field
-    private Map<String,Object> saveContextOfManageJsonData() throws NoSuchFieldException, IllegalAccessException {
-        Field dataJsonField = ManageJsonData.class.getDeclaredField("dataJson");
-        dataJsonField.setAccessible(true);
-        Object dataJsonBackupObject = dataJsonField.get(manageJsonData);
-        dataJsonField.setAccessible(false);
-        return objectMapperSpy.convertValue(dataJsonBackupObject, new TypeReference<>() {});
+    private Map<String, Object> saveContextOfManageJsonData() {
+        //Initialize map to store data
+        Map<String, Object> mapDataJsonBackup = new HashMap<>();
+        try {
+            Field dataJsonField = ManageJsonData.class.getDeclaredField("dataJson");
+            dataJsonField.setAccessible(true);
+            Object dataJsonBackupObject = dataJsonField.get(manageJsonData);
+            dataJsonField.setAccessible(false);
+            mapDataJsonBackup = objectMapperSpy.convertValue(dataJsonBackupObject, new TypeReference<>() {});
+        } catch (NoSuchFieldException e) {
+            //"Erreur lors de la sauvegarde du contexte : champ non trouvé."
+        } catch (IllegalAccessException e) {
+            //Erreur lors de la sauvegarde du contexte : accès illégal au champ
+        } catch (Exception e) {
+            //"Erreur inattendue lors de la sauvegarde du contexte."
+        }
+        return mapDataJsonBackup;
     }
 
+
     // Method to restore the context of the dataJson field
-    private void restoreContextOfManageJsonData(Map<String,Object> dataJsonBackup) throws NoSuchFieldException, IllegalAccessException {
-        Field dataJsonField = ManageJsonData.class.getDeclaredField("dataJson");
-        dataJsonField.setAccessible(true);
-        dataJsonField.set(manageJsonData,dataJsonBackup);
-        dataJsonField.setAccessible(false);
+    private void restoreContextOfManageJsonData(Map<String, Object> dataJsonBackup) {
+        try {
+            Field dataJsonField = ManageJsonData.class.getDeclaredField("dataJson");
+            dataJsonField.setAccessible(true);
+            dataJsonField.set(manageJsonData, dataJsonBackup);
+            dataJsonField.setAccessible(false);
+        } catch (NoSuchFieldException e) {
+            //"Erreur lors de la sauvegarde du contexte : champ non trouvé."
+        } catch (IllegalAccessException e) {
+            //Erreur lors de la sauvegarde du contexte : accès illégal au champ
+        } catch (Exception e) {
+            //"Erreur inattendue lors de la sauvegarde du contexte."
+        }
     }
 }
