@@ -15,35 +15,46 @@ import java.util.Optional;
 public class MedicalRecordService {
     private final ManageJsonData manageJsonData;
 
+    // Constructor to inject ManageJsonData dependency
     public MedicalRecordService(ManageJsonData manageJsonData) {
         this.manageJsonData = manageJsonData;
     }
 
+    // Method to add a new medical record
     public void addMedicalRecord(AddOrUpdateMedicalRecordDto newMedicalRecord) throws IOException {
         List<MedicalRecordModel> listMedicalRecordExisting = manageJsonData.medicalRecordReaderJsonData();
+        // Check if the medical record already exists
         if (listMedicalRecordExisting.stream().noneMatch(medicalRecordExist -> medicalRecordExist.getLastName().equals(newMedicalRecord.getLastName()) && medicalRecordExist.getFirstName().equals(newMedicalRecord.getFirstName()))) {
+            // Add the new medical record if it does not exist
             listMedicalRecordExisting.add(new MedicalRecordModel(newMedicalRecord.getFirstName(), newMedicalRecord.getLastName(), newMedicalRecord.getBirthdate(), newMedicalRecord.getMedications(), newMedicalRecord.getAllergies()));
         }
+        // Write the updated list of medical records back to the JSON file
         manageJsonData.medicalRecordWriterJsonData(listMedicalRecordExisting);
     }
 
+    // Method to update an existing medical record
     public void updateMedicalRecord(AddOrUpdateMedicalRecordDto updateMedicalRecord) throws IOException {
         List<MedicalRecordModel> listMedicalRecordExisting = manageJsonData.medicalRecordReaderJsonData();
-        //get the reference to the filtered person object
+        // Get the reference to the filtered medical record object
         Optional<MedicalRecordModel> wantedMedicalRecordUpdate = listMedicalRecordExisting.stream().filter(medicalRecord -> medicalRecord.getFirstName().equals(updateMedicalRecord.getFirstName()) && medicalRecord.getLastName().equals(updateMedicalRecord.getLastName())).findFirst();
-        //if there is a reference then I access the object using this and modify the properties of the person
+        // If there is a reference, access the object and modify its properties
         wantedMedicalRecordUpdate.ifPresent(modifyMedicalRecord -> {
             modifyMedicalRecord.setBirthdate(updateMedicalRecord.getBirthdate());
             modifyMedicalRecord.setMedications(updateMedicalRecord.getMedications());
             modifyMedicalRecord.setAllergies(updateMedicalRecord.getAllergies());
         });
+        // Write the updated list of medical records back to the JSON file
         manageJsonData.medicalRecordWriterJsonData(listMedicalRecordExisting);
     }
 
+    // Method to delete an existing medical record
     public void deleteMedicalRecord(DeleteMedicalRecordDto deleteMedicalRecord) throws IOException {
         List<MedicalRecordModel> listMedicalRecordExisting = manageJsonData.medicalRecordReaderJsonData();
+        // Remove the medical record if it matches the given first name and last name
         if(listMedicalRecordExisting.removeIf(medicalRecord -> medicalRecord.getFirstName().equals(deleteMedicalRecord.getFirstName()) && medicalRecord.getLastName().equals(deleteMedicalRecord.getLastName()))) {
+            // Write the updated list of medical records back to the JSON file
             manageJsonData.medicalRecordWriterJsonData(new ArrayList<>());
-        }//TODO:: add exception if not found
+        } // TODO: Add exception handling if the medical record is not found
     }
 }
+
