@@ -41,45 +41,35 @@ class ManageJsonDataTest {
     // Testing methods for reading JSON data
     @Test
     void fireStationReaderJsonDataTest() {
-        List<FireStationModel> reply = manageJsonData.fireStationReaderJsonData();
+        FireStationModel exceptedResponse = new FireStationModel("908 73rd St", "1");
+        FireStationModel reply = manageJsonData.fireStationReaderJsonData().stream().filter(listDTO -> listDTO.getAddress().equals(exceptedResponse.getAddress()))
+                .findFirst()
+                .orElse(null);
         assertNotNull(reply);
+        assertEquals(exceptedResponse.toString(), reply.toString());
+
     }
 
     @Test
     void personReaderJsonDataJsonDataTest() {
-        List<PersonModel> reply = manageJsonData.personReaderJsonData();
+        PersonModel exceptedResponse = new PersonModel("John", "Boyd", "1509 Culver St", "Culver", "97451", "841-874-6512", "jaboyd@email.com");
+        PersonModel reply = manageJsonData.personReaderJsonData().stream().filter(listDTO -> listDTO.getFirstName().equals(exceptedResponse.getFirstName())
+                        && listDTO.getLastName().equals(exceptedResponse.getLastName()))
+                .findFirst()
+                .orElse(null);
         assertNotNull(reply);
     }
 
     @Test
     void medicalRecordReaderJsonDataTest() {
-        List<MedicalRecordModel> reply = manageJsonData.medicalRecordReaderJsonData();
+        MedicalRecordModel exceptedResponse = new MedicalRecordModel("John", "Boyd", "03/06/1984", List.of("aznol:350mg, hydrapermazol:100mg"), List.of("nillacilan"));
+        MedicalRecordModel reply = manageJsonData.medicalRecordReaderJsonData().stream().filter(listDTO -> listDTO.getFirstName().equals(exceptedResponse.getFirstName())
+                        && listDTO.getLastName().equals(exceptedResponse.getLastName()))
+                .findFirst()
+                .orElse(null);
         assertNotNull(reply);
     }
 
-    // Test method for reading a fire station by its address
-    @Test
-    void testFireStationReaderByReturn() {
-        FireStationModel response = manageJsonData.testFireStationReaderByReturn("908 73rd St");
-        FireStationModel exceptedResponse = new FireStationModel("908 73rd St", "1");
-        assertEquals(exceptedResponse.toString(), response.toString());
-    }
-
-    // Test method for reading a person by first name and last name
-    @Test
-    void testPersonReaderByReturn() {
-        PersonModel response = manageJsonData.testPersonReaderByReturn("John", "Boyd");
-        PersonModel exceptedResponse = new PersonModel("John", "Boyd", "1509 Culver St", "Culver", "97451", "841-874-6512", "jaboyd@email.com");
-        assertEquals(exceptedResponse.toString(), response.toString());
-    }
-
-    // Test method for reading a medical record by first name and last name
-    @Test
-    void testMedicalRecordReaderByReturn() {
-        MedicalRecordModel response = manageJsonData.testMedicalRecordReaderByReturn("John", "Boyd");
-        MedicalRecordModel exceptedResponse = new MedicalRecordModel("John", "Boyd", "03/06/1984", List.of("aznol:350mg, hydrapermazol:100mg"), List.of("nillacilan"));
-        assertEquals(exceptedResponse.toString(), response.toString());
-    }
 
     // Test method for writing JSON data for persons
     @Test

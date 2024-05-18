@@ -62,28 +62,6 @@ public class ManageJsonData {
         });
     }
 
-    // Method to test/find a fire station by address
-    public FireStationModel testFireStationReaderByReturn(String address) {
-        return fireStationReaderJsonData().stream().filter(listDTO -> listDTO.getAddress().equals(address))
-                .findFirst()
-                .orElse(null);
-    }
-
-    // Method to test/find a person by first and last name
-    public PersonModel testPersonReaderByReturn(String firstName, String lastName) {
-        return personReaderJsonData().stream().filter(listDTO -> listDTO.getFirstName().equals(firstName)
-                        && listDTO.getLastName().equals(lastName))
-                .findFirst()
-                .orElse(null);
-    }
-
-    // Method to test/find a medical record by first and last name
-    public MedicalRecordModel testMedicalRecordReaderByReturn(String firstName, String lastName) {
-        return medicalRecordReaderJsonData().stream().filter(listDTO -> listDTO.getFirstName().equals(firstName)
-                        && listDTO.getLastName().equals(lastName))
-                .findFirst()
-                .orElse(null);
-    }
 
     // Method to write people data to the JSON file
     public void personWriterJsonData(List<PersonModel> list) throws IOException {
