@@ -4,7 +4,7 @@ import com.openclassrooms.safetynet.dto.requests.AddFireStationDto;
 import com.openclassrooms.safetynet.dto.requests.DeleteFireStationDto;
 import com.openclassrooms.safetynet.dto.requests.UpdateFireStationDto;
 import com.openclassrooms.safetynet.models.FireStationModel;
-import com.openclassrooms.safetynet.utils.ManageJsonData;
+import com.openclassrooms.safetynet.repository.ManageJsonData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
