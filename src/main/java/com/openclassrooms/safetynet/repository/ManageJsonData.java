@@ -67,18 +67,18 @@ public class ManageJsonData {
     // Method to write people data to the JSON file
     public void personWriterJsonData(List<PersonModel> list) throws IOException {
         this.dataJson.replace("persons", list);
-        objectMapper.writer(new OutputFormatIndentationJsonData()).writeValue(file, dataJson);
+        objectMapper.writer(OutputFormatIndentationJsonData.getInstance()).writeValue(file, dataJson);
     }
 
     // Method to write fire station data to the JSON file
     public void fireStationWriterJsonData(List<FireStationModel> list) throws IOException {
         this.dataJson.replace("firestations", list);
-        objectMapper.writer(new OutputFormatIndentationJsonData()).writeValue(file, dataJson);
+        objectMapper.writer(OutputFormatIndentationJsonData.getInstance()).writeValue(file, dataJson);
     }
 
     // Method to write medical records to JSON file
     public void medicalRecordWriterJsonData(List<MedicalRecordModel> list) throws IOException {
         this.dataJson.replace("medicalrecords", list);
-        objectMapper.writer(new OutputFormatIndentationJsonData()).writeValue(file, dataJson);
+        objectMapper.writer(OutputFormatIndentationJsonData.getInstance()).writeValue(file, dataJson);
     }
 }

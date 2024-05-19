@@ -35,7 +35,7 @@ class ManageJsonDataTest {
     @SpyBean
     ObjectMapper objectMapperSpy;
     @Spy
-    ObjectWriter objectWriterSpy = new ObjectMapper().writer(new OutputFormatIndentationJsonData());
+    ObjectWriter objectWriterSpy = new ObjectMapper().writer(OutputFormatIndentationJsonData.getInstance());
     @BeforeEach
     void setUp() throws IOException {
     manageJsonData.init();
