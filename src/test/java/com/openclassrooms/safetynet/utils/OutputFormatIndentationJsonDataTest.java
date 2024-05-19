@@ -1,7 +1,6 @@
-package com.openclassrooms.safetynet.services;
+package com.openclassrooms.safetynet.utils;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.openclassrooms.safetynet.utils.OutputFormatIndentationJsonData;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

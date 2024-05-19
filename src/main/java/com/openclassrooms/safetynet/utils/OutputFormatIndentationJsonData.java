@@ -8,13 +8,21 @@ import java.io.IOException;
 import java.io.Serial;
 import java.io.Serializable;
 
-public class OutputFormatIndentationJsonData implements PrettyPrinter, Instantiatable<OutputFormatIndentationJsonData>, Serializable {
+public final class OutputFormatIndentationJsonData implements PrettyPrinter, Instantiatable<OutputFormatIndentationJsonData>, Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
     //manages the level in the Json to adapt the formatting
     private transient int _nesting = 0;
+    private static final OutputFormatIndentationJsonData INSTANCE = new OutputFormatIndentationJsonData();
 
+    // Private constructor to prevent instantiation
+    private OutputFormatIndentationJsonData() {
+    }
+
+    public static OutputFormatIndentationJsonData getInstance() {
+        return INSTANCE;
+    }
 
     // Method to write the root value separator
     public void writeRootValueSeparator(JsonGenerator jsonGenerator) {
