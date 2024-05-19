@@ -5,7 +5,7 @@ import com.openclassrooms.safetynet.dto.requests.DeletePersonDto;
 import com.openclassrooms.safetynet.dto.responses.*;
 import com.openclassrooms.safetynet.dto.responses.submodels.*;
 import com.openclassrooms.safetynet.models.PersonModel;
-import com.openclassrooms.safetynet.utils.ManageJsonData;
+import com.openclassrooms.safetynet.repository.ManageJsonData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
