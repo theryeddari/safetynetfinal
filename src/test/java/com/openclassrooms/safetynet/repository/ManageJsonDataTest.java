@@ -1,4 +1,4 @@
-package com.openclassrooms.safetynet.services;
+package com.openclassrooms.safetynet.repository;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -6,9 +6,9 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.openclassrooms.safetynet.models.FireStationModel;
 import com.openclassrooms.safetynet.models.MedicalRecordModel;
 import com.openclassrooms.safetynet.models.PersonModel;
-import com.openclassrooms.safetynet.utils.ManageJsonData;
 import com.openclassrooms.safetynet.utils.OutputFormatIndentationJsonData;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
@@ -30,14 +30,16 @@ import static org.mockito.Mockito.*;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(properties = { "path.file = src/main/resources/dataForWriterTest.json" })
 class ManageJsonDataTest {
-
     @Autowired
     ManageJsonData manageJsonData;
     @SpyBean
     ObjectMapper objectMapperSpy;
     @Spy
     ObjectWriter objectWriterSpy = new ObjectMapper().writer(new OutputFormatIndentationJsonData());
-
+    @BeforeEach
+    void setUp() throws IOException {
+    manageJsonData.init();
+    }
     // Testing methods for reading JSON data
     @Test
     void fireStationReaderJsonDataTest() {
@@ -58,6 +60,8 @@ class ManageJsonDataTest {
                 .findFirst()
                 .orElse(null);
         assertNotNull(reply);
+        assertEquals(exceptedResponse.toString(), reply.toString());
+
     }
 
     @Test
@@ -68,14 +72,14 @@ class ManageJsonDataTest {
                 .findFirst()
                 .orElse(null);
         assertNotNull(reply);
+        assertEquals(exceptedResponse.toString(), reply.toString());
+
     }
 
 
     // Test method for writing JSON data for persons
     @Test
     void personWriterJsonDataTest() throws IOException {
-        // Backup the original dataJson field of manageJsonData because it'll be changed by this test and make someWrong behavior in next test because we're using the same instance of ManageJsonData for all class test
-        Map<String, Object> dataJsonBackup = saveContextOfManageJsonData();
         // List of persons to write
         List<PersonModel> listPerson = List.of(new PersonModel("Thery", "Eddari", "", "", "", "", ""));
         // StringWriter to store output data from writeValue
@@ -83,6 +87,7 @@ class ManageJsonDataTest {
         // StringWriter to store expected data (response and expected format)
         StringWriter stringWriterExpectedJsonValue = getStringWriterForPerson();
 
+        doNothing().when(objectWriterSpy).writeValue(any(File.class),any());
 
         // Stubbing objectMapperSpy.writer to return an ObjectWriterSpy which will be used to Stub this ObjectWriter's writeValue method
         when(objectMapperSpy.writer(any(OutputFormatIndentationJsonData.class))).thenReturn(objectWriterSpy);
@@ -102,16 +107,12 @@ class ManageJsonDataTest {
         // Assert on part of String must be same.
         Assertions.assertEquals(stringWriterJsonOutput.toString().substring(0, stringWriterExpectedJsonValue.toString().length()), stringWriterExpectedJsonValue.toString());
 
-
-        // Restore the original dataJson field of manageJsonData
-        restoreContextOfManageJsonData(dataJsonBackup);
     }
 
     // Test method for writing JSON data for fire stations
     @Test
     void fireStationWriterJsonDataTest() throws IOException {
-        // Backup the original dataJson field of manageJsonData because it'll be changed by this test and make someWrong behavior in next test because we're using the same instance of ManageJsonData for all class test
-        Map<String, Object> dataJsonBackup = saveContextOfManageJsonData();
+
         // List of fire stations to write
         List<FireStationModel> listFireStation = List.of(new FireStationModel("10 rue des bois", "20"));
         // StringWriter to store output data from writeValue
@@ -140,16 +141,11 @@ class ManageJsonDataTest {
         int endIndex = beginIndex + stringWriterExpectedJsonValue.toString().length();
         assertEquals(stringWriterJsonOutput.toString().substring(beginIndex, endIndex), stringWriterExpectedJsonValue.toString());
 
-
-        // Restore the original dataJson field of manageJsonData
-        restoreContextOfManageJsonData(dataJsonBackup);
     }
 
     // Test method for writing JSON data for medical records
     @Test
     void MedicalRecordWriterJsonDataTest() throws IOException {
-        // Backup the original dataJson field of manageJsonData because it'll be changed by this test and make someWrong behavior in next test because we're using the same instance of ManageJsonData for all class test
-        Map<String, Object> dataJsonBackup = saveContextOfManageJsonData();
         // List of medical records to write
         List<MedicalRecordModel> listMedicalRecord = List.of(new MedicalRecordModel("Thery", "Eddari", "", List.of(), List.of()));
         // StringWriter to store output data from writeValue
@@ -177,10 +173,47 @@ class ManageJsonDataTest {
         int beginIndex = stringWriterJsonOutput.toString().indexOf("medicalrecords") - 7;
         int endIndex = beginIndex + stringWriterExpectedJsonValue.toString().length();
         assertEquals(stringWriterJsonOutput.toString().substring(beginIndex, endIndex), stringWriterExpectedJsonValue.toString());
+    }
 
+    // Test method for writing JSON data for medical records
+    @Test
+    void ensureJsonInMemoryUpdate() throws IOException, NoSuchFieldException, IllegalAccessException {
+        // List of medical records to write
+        List<PersonModel> listPerson = List.of(new PersonModel("Thery", "Eddari", "", "", "", "", ""));
+        //Person excepted into dataJsonMemory (dataJson) in manageJsonData
+        PersonModel exceptedResponse = new PersonModel("Thery", "Eddari", "", "", "", "", "");
+        // Stubbing objectMapperSpy.writer to return an ObjectWriterSpy which will be used to Stub this ObjectWriter's writeValue method
+        when(objectMapperSpy.writer(any(OutputFormatIndentationJsonData.class))).thenReturn(objectWriterSpy);
+        // Stub the writeValue method to do nothing
+        doNothing().when(objectWriterSpy).writeValue(any(File.class),any());
 
-        // Restore the original dataJson field of manageJsonData
-        restoreContextOfManageJsonData(dataJsonBackup);
+        // Call the method to be tested
+        manageJsonData.personWriterJsonData(listPerson);
+
+        // process to read the current context of the dataJson field (reflexion)
+        //Initialize map to store data
+        Map<String, Object> mapDataJsonBackup = new HashMap<>();
+        try {
+            Field dataJsonField = ManageJsonData.class.getDeclaredField("dataJson");
+            dataJsonField.setAccessible(true);
+            Object dataJsonBackupObject = dataJsonField.get(manageJsonData);
+            dataJsonField.setAccessible(false);
+            mapDataJsonBackup = objectMapperSpy.convertValue(dataJsonBackupObject, new TypeReference<>() {});
+        } catch (NoSuchFieldException e) {
+        //"Erreur lors de la sauvegarde du contexte : champ non trouvé."
+        } catch (IllegalAccessException e) {
+        //Erreur lors de la sauvegarde du contexte : accès illégal au champ
+        } catch (Exception e) {
+        //"Erreur inattendue lors de la sauvegarde du contexte."
+        }
+        //get persons collection of dataBackup and check the modification
+        List<PersonModel> listPersonDataJsonBackup = objectMapperSpy.convertValue(mapDataJsonBackup.get("persons"), new TypeReference<>() {});
+        PersonModel personExist =  listPersonDataJsonBackup.stream()
+                .filter(personWanted ->
+                     personWanted.getFirstName().equals(exceptedResponse.getFirstName()))
+                .findFirst().orElseThrow();
+        Assertions.assertEquals(exceptedResponse.toString(), personExist.toString());
+
     }
 
     // Method to create a StringWriter for Person data to test the formatting and response waiting
@@ -219,40 +252,4 @@ class ManageJsonDataTest {
         return stringWriterExpectedJsonValue;
     }
 
-    // Method to save the current context of the dataJson field
-    private Map<String, Object> saveContextOfManageJsonData() {
-        //Initialize map to store data
-        Map<String, Object> mapDataJsonBackup = new HashMap<>();
-        try {
-            Field dataJsonField = ManageJsonData.class.getDeclaredField("dataJson");
-            dataJsonField.setAccessible(true);
-            Object dataJsonBackupObject = dataJsonField.get(manageJsonData);
-            dataJsonField.setAccessible(false);
-            mapDataJsonBackup = objectMapperSpy.convertValue(dataJsonBackupObject, new TypeReference<>() {});
-        } catch (NoSuchFieldException e) {
-            //"Erreur lors de la sauvegarde du contexte : champ non trouvé."
-        } catch (IllegalAccessException e) {
-            //Erreur lors de la sauvegarde du contexte : accès illégal au champ
-        } catch (Exception e) {
-            //"Erreur inattendue lors de la sauvegarde du contexte."
-        }
-        return mapDataJsonBackup;
-    }
-
-
-    // Method to restore the context of the dataJson field
-    private void restoreContextOfManageJsonData(Map<String, Object> dataJsonBackup) {
-        try {
-            Field dataJsonField = ManageJsonData.class.getDeclaredField("dataJson");
-            dataJsonField.setAccessible(true);
-            dataJsonField.set(manageJsonData, dataJsonBackup);
-            dataJsonField.setAccessible(false);
-        } catch (NoSuchFieldException e) {
-            //"Erreur lors de la sauvegarde du contexte : champ non trouvé."
-        } catch (IllegalAccessException e) {
-            //Erreur lors de la sauvegarde du contexte : accès illégal au champ
-        } catch (Exception e) {
-            //"Erreur inattendue lors de la sauvegarde du contexte."
-        }
-    }
 }
