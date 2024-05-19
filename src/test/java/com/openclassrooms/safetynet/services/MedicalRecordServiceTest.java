@@ -3,7 +3,7 @@ package com.openclassrooms.safetynet.services;
 import com.openclassrooms.safetynet.dto.requests.AddOrUpdateMedicalRecordDto;
 import com.openclassrooms.safetynet.dto.requests.DeleteMedicalRecordDto;
 import com.openclassrooms.safetynet.models.MedicalRecordModel;
-import com.openclassrooms.safetynet.utils.ManageJsonData;
+import com.openclassrooms.safetynet.repository.ManageJsonData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
