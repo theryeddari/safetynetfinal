@@ -8,7 +8,6 @@ import com.openclassrooms.safetynet.models.FireStationModel;
 import com.openclassrooms.safetynet.models.MedicalRecordModel;
 import com.openclassrooms.safetynet.models.PersonModel;
 import com.openclassrooms.safetynet.utils.OutputFormatIndentationJsonData;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,7 +17,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.util.AopTestUtils;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -51,7 +49,7 @@ class ManageJsonDataTest {
     @Test
     void fireStationReaderJsonDataTest() {
         FireStationModel exceptedResponse = new FireStationModel("908 73rd St", "1");
-        FireStationModel reply = manageJsonData.fireStationReaderJsonData().stream().filter(listDTO -> listDTO.getAddress().equals(exceptedResponse.getAddress()))
+        FireStationModel reply = manageJsonData.fireStationReaderJsonData().stream().filter(fireModel -> fireModel.getAddress().equals(exceptedResponse.getAddress()))
                 .findFirst()
                 .orElse(null);
         assertNotNull(reply);
@@ -62,8 +60,8 @@ class ManageJsonDataTest {
     @Test
     void personReaderJsonDataJsonDataTest() {
         PersonModel exceptedResponse = new PersonModel("John", "Boyd", "1509 Culver St", "Culver", "97451", "841-874-6512", "jaboyd@email.com");
-        PersonModel reply = manageJsonData.personReaderJsonData().stream().filter(listDTO -> listDTO.getFirstName().equals(exceptedResponse.getFirstName())
-                        && listDTO.getLastName().equals(exceptedResponse.getLastName()))
+        PersonModel reply = manageJsonData.personReaderJsonData().stream().filter(personModel -> personModel.getFirstName().equals(exceptedResponse.getFirstName())
+                        && personModel.getLastName().equals(exceptedResponse.getLastName()))
                 .findFirst()
                 .orElse(null);
         assertNotNull(reply);
@@ -74,8 +72,8 @@ class ManageJsonDataTest {
     @Test
     void medicalRecordReaderJsonDataTest() {
         MedicalRecordModel exceptedResponse = new MedicalRecordModel("John", "Boyd", "03/06/1984", List.of("aznol:350mg, hydrapermazol:100mg"), List.of("nillacilan"));
-        MedicalRecordModel reply = manageJsonData.medicalRecordReaderJsonData().stream().filter(listDTO -> listDTO.getFirstName().equals(exceptedResponse.getFirstName())
-                        && listDTO.getLastName().equals(exceptedResponse.getLastName()))
+        MedicalRecordModel reply = manageJsonData.medicalRecordReaderJsonData().stream().filter(medicalModel -> medicalModel.getFirstName().equals(exceptedResponse.getFirstName())
+                        && medicalModel.getLastName().equals(exceptedResponse.getLastName()))
                 .findFirst()
                 .orElse(null);
         assertNotNull(reply);
@@ -94,8 +92,6 @@ class ManageJsonDataTest {
         // StringWriter to store expected data (response and expected format)
         StringWriter stringWriterExpectedJsonValue = getStringWriterForPerson();
 
-        doNothing().when(objectWriterSpy).writeValue(any(File.class),any());
-
         // Stubbing objectMapperSpy.writer to return an ObjectWriterSpy which will be used to Stub this ObjectWriter's writeValue method
         when(objectMapperSpy.writer(any(OutputFormatIndentationJsonData.class))).thenReturn(objectWriterSpy);
         // Stub the writeValue method to write the response (from File to StringWriter)
@@ -112,8 +108,23 @@ class ManageJsonDataTest {
         // Verify the method call
         verify(objectWriterSpy).writeValue(any(StringWriter.class), any());
         // Assert on part of String must be same.
-        Assertions.assertEquals(stringWriterJsonOutput.toString().substring(0, stringWriterExpectedJsonValue.toString().length()), stringWriterExpectedJsonValue.toString());
+        assertEquals(stringWriterJsonOutput.toString().substring(0, stringWriterExpectedJsonValue.toString().length()), stringWriterExpectedJsonValue.toString());
 
+    }
+    //Test Method to check throw CustomException
+    @Test
+    void PersonWriterJsonDataWithI0Exception() throws IOException {
+        // List of persons to write
+        List<PersonModel> listPerson = List.of(new PersonModel("Thery", "Eddari", "", "", "", "", ""));
+
+        // Stubbing objectMapperSpy.writer to return an ObjectWriterSpy which will be used to Stub this ObjectWriter's writeValue method
+        when(objectMapperSpy.writer(any(OutputFormatIndentationJsonData.class))).thenReturn(objectWriterSpy);
+        // Stub the writeValue method to throw ExceptionIO
+        doThrow(IOException.class).when(objectWriterSpy).writeValue(any(File.class), any());
+
+        // Call the method to trigger the exception and Verify that the thrown exception is of type PersonWriterException and its cause IOException
+        Throwable exception = assertThrows(PersonWriterException.class, () -> manageJsonData.personWriterJsonData(listPerson));
+        assertEquals(exception.getCause().getClass(), IOException.class);
     }
 
     // Test method for writing JSON data for fire stations
@@ -149,10 +160,25 @@ class ManageJsonDataTest {
         assertEquals(stringWriterJsonOutput.toString().substring(beginIndex, endIndex), stringWriterExpectedJsonValue.toString());
 
     }
+    //Test Method to check throw CustomException
+    @Test
+    void fireStationWriterJsonDataWithI0Exception() throws IOException {
+        // List of fire stations to write
+        List<FireStationModel> listFireStation = List.of(new FireStationModel("10 rue des bois", "20"));
+
+        // Stubbing objectMapperSpy.writer to return an ObjectWriterSpy which will be used to Stub this ObjectWriter's writeValue method
+        when(objectMapperSpy.writer(any(OutputFormatIndentationJsonData.class))).thenReturn(objectWriterSpy);
+        // Stub the writeValue method to throw ExceptionIO
+        doThrow(IOException.class).when(objectWriterSpy).writeValue(any(File.class), any());
+
+        // Call the method to trigger the exception and Verify that the thrown exception is of type FireStationWriterException and its cause IOException
+        Throwable exception = assertThrows(FireStationWriterException.class, () -> manageJsonData.fireStationWriterJsonData(listFireStation));
+        assertEquals(exception.getCause().getClass(), IOException.class);
+    }
 
     // Test method for writing JSON data for medical records
     @Test
-    void MedicalRecordWriterJsonDataTest() throws IOException, MedicalRecordWriterException {
+    void medicalRecordWriterJsonDataTest() throws IOException, MedicalRecordWriterException {
         // List of medical records to write
         List<MedicalRecordModel> listMedicalRecord = List.of(new MedicalRecordModel("Thery", "Eddari", "", List.of(), List.of()));
         // StringWriter to store output data from writeValue
@@ -181,6 +207,23 @@ class ManageJsonDataTest {
         int endIndex = beginIndex + stringWriterExpectedJsonValue.toString().length();
         assertEquals(stringWriterJsonOutput.toString().substring(beginIndex, endIndex), stringWriterExpectedJsonValue.toString());
     }
+    //Test Method to check throw CustomException
+    @Test
+    void medicalRecordWriterJsonDataWithI0Exception() throws IOException {
+        // List of medical records to write
+        List<MedicalRecordModel> listMedicalRecord = List.of(new MedicalRecordModel("Thery", "Eddari", "", List.of(), List.of()));
+
+        // Stubbing objectMapperSpy.writer to return an ObjectWriterSpy which will be used to Stub this ObjectWriter's writeValue method
+        when(objectMapperSpy.writer(any(OutputFormatIndentationJsonData.class))).thenReturn(objectWriterSpy);
+        // Stub the writeValue method to throw ExceptionIO
+        doThrow(IOException.class).when(objectWriterSpy).writeValue(any(File.class), any());
+
+        // Call the method to trigger the exception and Verify that the thrown exception is of type FireStationWriterException and its cause IOException
+        Throwable exception = assertThrows(MedicalRecordWriterException.class, () -> manageJsonData.medicalRecordWriterJsonData(listMedicalRecord));
+        assertEquals(exception.getCause().getClass(), IOException.class);
+    }
+
+
 
     // Test method for ensure that state of field is correct update.
     @Test
@@ -214,7 +257,7 @@ class ManageJsonDataTest {
                 .filter(personWanted ->
                      personWanted.getFirstName().equals(exceptedResponse.getFirstName()))
                 .findFirst().orElseThrow();
-        Assertions.assertEquals(exceptedResponse.toString(), personExist.toString());
+        assertEquals(exceptedResponse.toString(), personExist.toString());
 
     }
 
@@ -232,7 +275,7 @@ class ManageJsonDataTest {
                 // Set the path value
                 pathField.set(manageJsonData, path);
                 // Call the init() method to trigger the exception and Verify that the thrown exception is of type InitException and its cause NullPointer
-                Throwable exception = Assertions.assertThrows(InitException.class, () -> manageJsonData.init());
+                Throwable exception = assertThrows(InitException.class, () -> manageJsonData.init());
                 assertEquals(NullPointerException.class, exception.getCause().getClass());
         }
         //restore good value of path
@@ -249,7 +292,7 @@ class ManageJsonDataTest {
         pathField.setAccessible(false);
 
         //call method init() into a assert to reinitialize File with its in order to creat a IOException FileNotFoundException and catch its
-            Throwable exception = Assertions.assertThrows(InitException.class, () -> manageJsonData.init());
+            Throwable exception = assertThrows(InitException.class, () -> manageJsonData.init());
             assertEquals(exception.getCause().getClass(), FileNotFoundException.class);
         //restore good value of path
         pathField.set(manageJsonData, environment.getProperty("path.file"));
