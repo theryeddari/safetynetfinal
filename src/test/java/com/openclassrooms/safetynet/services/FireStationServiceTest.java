@@ -3,6 +3,7 @@ package com.openclassrooms.safetynet.services;
 import com.openclassrooms.safetynet.dto.requests.AddFireStationDto;
 import com.openclassrooms.safetynet.dto.requests.DeleteFireStationDto;
 import com.openclassrooms.safetynet.dto.requests.UpdateFireStationDto;
+import com.openclassrooms.safetynet.exceptions.ManageJsonDataCustomException;
 import com.openclassrooms.safetynet.models.FireStationModel;
 import com.openclassrooms.safetynet.repository.ManageJsonData;
 import org.junit.jupiter.api.Assertions;
@@ -11,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +28,7 @@ class FireStationServiceTest {
     FireStationServiceTest(){
     }
     @Test
-    void addStationTest() throws IOException {
+    void addStationTest() throws ManageJsonDataCustomException.FireStationWriterException {
         //use of a modifiable table to store an initial list which can be dynamically modified by the method tested thanks to the reference
         List<FireStationModel> listDataJsonFireStationForMock = new ArrayList<>(List.of(new FireStationModel("5 rue des arbres","5")));
         //stub the mock method to introduce our list into the method
@@ -42,7 +42,7 @@ class FireStationServiceTest {
                         && fireStation.getAddress().equals(newFireStation.getAddress())));
     }
     @Test
-    void updateFireStationTest() throws IOException {
+    void updateFireStationTest() throws ManageJsonDataCustomException.FireStationWriterException {
         UpdateFireStationDto updateFireStation = new UpdateFireStationDto("112 Steppes Pl","3","5");
         List<FireStationModel> listUpdatedFireStation = new ArrayList<>();
         doNothing().when(manageJsonDataSpy).fireStationWriterJsonData(anyList());
@@ -57,7 +57,7 @@ class FireStationServiceTest {
         ));
     }
     @Test
-    void deleteFireStationByNumberTest() throws IOException {
+    void deleteFireStationByNumberTest() throws ManageJsonDataCustomException.FireStationWriterException {
         DeleteFireStationDto deleteFireStation = new DeleteFireStationDto("","2");
         List<FireStationModel> listUpdatedFireStation = new ArrayList<>();
         doNothing().when(manageJsonDataSpy).fireStationWriterJsonData(anyList());
@@ -71,7 +71,7 @@ class FireStationServiceTest {
         );
     }
     @Test
-    void deleteFireStationByAddressTest() throws IOException {
+    void deleteFireStationByAddressTest() throws ManageJsonDataCustomException.FireStationWriterException {
         DeleteFireStationDto deleteFireStation = new DeleteFireStationDto("112 Steppes Pl","");
         List<FireStationModel> listUpdatedFireStation = new ArrayList<>();
         doNothing().when(manageJsonDataSpy).fireStationWriterJsonData(anyList());
@@ -85,7 +85,7 @@ class FireStationServiceTest {
         );
     }
     @Test
-    void deleteFireStationByAddressAndNumberTest() throws IOException {
+    void deleteFireStationByAddressAndNumberTest() throws ManageJsonDataCustomException.FireStationWriterException {
         DeleteFireStationDto deleteFireStation = new DeleteFireStationDto("748 Townings Dr","3");
         List<FireStationModel> listUpdatedFireStation = new ArrayList<>();
         doNothing().when(manageJsonDataSpy).fireStationWriterJsonData(anyList());

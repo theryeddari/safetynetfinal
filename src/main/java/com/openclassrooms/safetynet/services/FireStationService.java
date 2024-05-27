@@ -7,9 +7,10 @@ import com.openclassrooms.safetynet.models.FireStationModel;
 import com.openclassrooms.safetynet.repository.ManageJsonData;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+
+import static com.openclassrooms.safetynet.exceptions.ManageJsonDataCustomException.*;
 
 @Service
 public class FireStationService {
@@ -22,7 +23,7 @@ public class FireStationService {
     }
 
     // Method to add a new fire station
-    public void addFireStation(AddFireStationDto newFireStation) throws IOException {
+    public void addFireStation(AddFireStationDto newFireStation) throws FireStationWriterException {
         List<FireStationModel> listFireStationExisting = manageJsonData.fireStationReaderJsonData();
         // Check if the fire station already exists
         if (listFireStationExisting.stream().noneMatch(fireStationExist -> fireStationExist.getStation().equals(newFireStation.getStation()) && fireStationExist.getAddress().equals(newFireStation.getAddress()))) {
@@ -34,7 +35,7 @@ public class FireStationService {
     }
 
     // Method to update an existing fire station
-    public void updateFireStation(UpdateFireStationDto updateFireStation) throws IOException {
+    public void updateFireStation(UpdateFireStationDto updateFireStation) throws FireStationWriterException {
         List<FireStationModel> listFireStationExisting = manageJsonData.fireStationReaderJsonData();
         //get the reference to the filtered fire station object
         Optional<FireStationModel> wantedFireStationUpdate = listFireStationExisting.stream().filter(fireStation ->
@@ -50,7 +51,7 @@ public class FireStationService {
     }
 
     // Method to delete an existing fire station
-    public void deleteFireStation(DeleteFireStationDto deleteFireStation) throws IOException {
+    public void deleteFireStation(DeleteFireStationDto deleteFireStation) throws FireStationWriterException {
         List<FireStationModel> listFireStationExisting = manageJsonData.fireStationReaderJsonData();
         if (deleteFireStation.getStation() == null && deleteFireStation.getAddress() == null) {
             //TODO: exception
