@@ -12,11 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.openclassrooms.safetynet.exceptions.ManageJsonDataCustomException.*;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 @SpringBootTest
@@ -86,7 +86,7 @@ class PersonServiceTest {
         Assertions.assertTrue(reply.getMail().contains(exceptedMail));
     }
     @Test
-    void addPersonTest() throws IOException {
+    void addPersonTest() throws PersonWriterException {
         //use of a modifiable table to store an initial list which can be dynamically modified by the method tested thanks to the reference
         List<PersonModel> listDataJsonPersonForMock = new ArrayList<>(List.of(new PersonModel("Jean", "Jacque", "bla", "bla", "", "", "")));
         //stub the mock method to introduce our list into the method
@@ -99,7 +99,7 @@ class PersonServiceTest {
         Assertions.assertTrue(listDataJsonPersonForMock.stream().anyMatch(person -> person.getLastName().equals(newPerson.getLastName()) && person.getFirstName().equals(newPerson.getFirstName())));
     }
     @Test
-    void updatePersonTest() throws IOException {
+    void updatePersonTest() throws PersonWriterException {
         AddOrUpdatePersonDto updatePerson = new AddOrUpdatePersonDto("John","Boyd","","","","","");
         List<PersonModel> listUpdatedPersons = new ArrayList<>();
         doNothing().when(manageJsonDataSpy).personWriterJsonData(anyList());
@@ -121,7 +121,7 @@ class PersonServiceTest {
         ));
     }
     @Test
-    void deletePersonTest() throws IOException {
+    void deletePersonTest() throws PersonWriterException {
         DeletePersonDto deletePerson = new DeletePersonDto("John","Boyd");
         List<PersonModel> listUpdatedPersons = new ArrayList<>();
         doNothing().when(manageJsonDataSpy).personWriterJsonData(anyList());

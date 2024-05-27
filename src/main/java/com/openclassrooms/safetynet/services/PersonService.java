@@ -18,12 +18,13 @@ import com.openclassrooms.safetynet.repository.ManageJsonData;
 
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static com.openclassrooms.safetynet.exceptions.ManageJsonDataCustomException.*;
 
 @Service
 public class PersonService {
@@ -284,7 +285,7 @@ public class PersonService {
     }
 
     // Method to add a new person
-    public void addPerson(AddOrUpdatePersonDto person) throws IOException {
+    public void addPerson(AddOrUpdatePersonDto person) throws PersonWriterException {
         List<PersonModel> listPersonsExisting = manageJsonData.personReaderJsonData();
         // Check if the person already exists
         if (listPersonsExisting.stream().noneMatch(personExist -> personExist.getLastName().equals(person.getLastName()) && personExist.getFirstName().equals(person.getFirstName()))) {
@@ -295,7 +296,7 @@ public class PersonService {
         manageJsonData.personWriterJsonData(listPersonsExisting);
     }
     // Method to update an existing person
-    public void updatePerson(AddOrUpdatePersonDto updatePerson) throws IOException {
+    public void updatePerson(AddOrUpdatePersonDto updatePerson) throws PersonWriterException {
         List<PersonModel> listPersonsExisting = manageJsonData.personReaderJsonData();
         // Get the reference to the filtered person object
         Optional<PersonModel> wantedPersonUpdate = listPersonsExisting.stream().filter(person -> person.getFirstName().equals(updatePerson.getFirstName()) && person.getLastName().equals(updatePerson.getLastName())).findFirst();
@@ -312,7 +313,7 @@ public class PersonService {
     }
 
     // Method to delete an existing person
-    public void deletePerson(DeletePersonDto deletePerson) throws IOException {
+    public void deletePerson(DeletePersonDto deletePerson) throws PersonWriterException {
         List<PersonModel> listPersonsExisting = manageJsonData.personReaderJsonData();
         // Remove the person if it matches the given first name and last name
         if(listPersonsExisting.removeIf(person -> person.getFirstName().equals(deletePerson.getFirstName()) && person.getLastName().equals(deletePerson.getLastName()))){
