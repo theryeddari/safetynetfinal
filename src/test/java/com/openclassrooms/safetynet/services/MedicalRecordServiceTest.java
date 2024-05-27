@@ -10,10 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.openclassrooms.safetynet.exceptions.ManageJsonDataCustomException.*;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
@@ -27,7 +27,7 @@ public class MedicalRecordServiceTest {
     MedicalRecordServiceTest(){
     }
     @Test
-    void addMedicalRecordTest() throws IOException {
+    void addMedicalRecordTest() throws MedicalRecordWriterException {
         //use of a modifiable table to store an initial list which can be dynamically modified by the method tested thanks to the reference
         List<MedicalRecordModel> listDataJsonMedicalRecordForMock = new ArrayList<>(List.of(new MedicalRecordModel("Jean","Jacque","",List.of(""),List.of(""))));
         //stub the mock method to introduce our list into the method
@@ -40,7 +40,7 @@ public class MedicalRecordServiceTest {
         Assertions.assertTrue(listDataJsonMedicalRecordForMock.stream().anyMatch(medicalRecord -> medicalRecord.getLastName().equals(newMedicalRecord.getLastName()) && medicalRecord.getFirstName().equals(newMedicalRecord.getFirstName())));
     }
     @Test
-    void updateMedicalRecordTest() throws IOException {
+    void updateMedicalRecordTest() throws MedicalRecordWriterException {
         AddOrUpdateMedicalRecordDto updateMedicalRecord = new AddOrUpdateMedicalRecordDto("John","Boyd","",List.of(),List.of());
         List<MedicalRecordModel> listUpdatedMedicalRecord = new ArrayList<>();
         doNothing().when(manageJsonDataSpy).medicalRecordWriterJsonData(anyList());
@@ -58,7 +58,7 @@ public class MedicalRecordServiceTest {
         ));
     }
     @Test
-    void deleteMedicalRecordTest() throws IOException {
+    void deleteMedicalRecordTest() throws MedicalRecordWriterException {
         DeleteMedicalRecordDto deleteMedicalRecord = new DeleteMedicalRecordDto("John","Boyd");
         List<MedicalRecordModel> listDeletedMedicalRecord = new ArrayList<>();
         doNothing().when(manageJsonDataSpy).medicalRecordWriterJsonData(anyList());

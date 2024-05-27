@@ -6,10 +6,11 @@ import com.openclassrooms.safetynet.models.MedicalRecordModel;
 import com.openclassrooms.safetynet.repository.ManageJsonData;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static com.openclassrooms.safetynet.exceptions.ManageJsonDataCustomException.*;
 
 @Service
 public class MedicalRecordService {
@@ -21,7 +22,7 @@ public class MedicalRecordService {
     }
 
     // Method to add a new medical record
-    public void addMedicalRecord(AddOrUpdateMedicalRecordDto newMedicalRecord) throws IOException {
+    public void addMedicalRecord(AddOrUpdateMedicalRecordDto newMedicalRecord) throws MedicalRecordWriterException {
         List<MedicalRecordModel> listMedicalRecordExisting = manageJsonData.medicalRecordReaderJsonData();
         // Check if the medical record already exists
         if (listMedicalRecordExisting.stream().noneMatch(medicalRecordExist -> medicalRecordExist.getLastName().equals(newMedicalRecord.getLastName()) && medicalRecordExist.getFirstName().equals(newMedicalRecord.getFirstName()))) {
@@ -33,7 +34,7 @@ public class MedicalRecordService {
     }
 
     // Method to update an existing medical record
-    public void updateMedicalRecord(AddOrUpdateMedicalRecordDto updateMedicalRecord) throws IOException {
+    public void updateMedicalRecord(AddOrUpdateMedicalRecordDto updateMedicalRecord) throws MedicalRecordWriterException {
         List<MedicalRecordModel> listMedicalRecordExisting = manageJsonData.medicalRecordReaderJsonData();
         // Get the reference to the filtered medical record object
         Optional<MedicalRecordModel> wantedMedicalRecordUpdate = listMedicalRecordExisting.stream().filter(medicalRecord -> medicalRecord.getFirstName().equals(updateMedicalRecord.getFirstName()) && medicalRecord.getLastName().equals(updateMedicalRecord.getLastName())).findFirst();
@@ -48,7 +49,7 @@ public class MedicalRecordService {
     }
 
     // Method to delete an existing medical record
-    public void deleteMedicalRecord(DeleteMedicalRecordDto deleteMedicalRecord) throws IOException {
+    public void deleteMedicalRecord(DeleteMedicalRecordDto deleteMedicalRecord) throws MedicalRecordWriterException {
         List<MedicalRecordModel> listMedicalRecordExisting = manageJsonData.medicalRecordReaderJsonData();
         // Remove the medical record if it matches the given first name and last name
         if(listMedicalRecordExisting.removeIf(medicalRecord -> medicalRecord.getFirstName().equals(deleteMedicalRecord.getFirstName()) && medicalRecord.getLastName().equals(deleteMedicalRecord.getLastName()))) {
