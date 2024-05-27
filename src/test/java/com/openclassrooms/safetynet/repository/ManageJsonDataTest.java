@@ -3,6 +3,7 @@ package com.openclassrooms.safetynet.repository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+
 import com.openclassrooms.safetynet.models.FireStationModel;
 import com.openclassrooms.safetynet.models.MedicalRecordModel;
 import com.openclassrooms.safetynet.models.PersonModel;
@@ -15,14 +16,16 @@ import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.util.AopTestUtils;
 
 import java.io.*;
 import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.openclassrooms.safetynet.exceptions.ManageJsonDataCustomException.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -36,11 +39,15 @@ class ManageJsonDataTest {
     ObjectMapper objectMapperSpy;
     @Spy
     ObjectWriter objectWriterSpy = new ObjectMapper().writer(OutputFormatIndentationJsonData.getInstance());
+    @Autowired
+    private Environment environment;
+
     @BeforeEach
-    void setUp() throws IOException {
+    void setUp() throws InitException {
     manageJsonData.init();
     }
     // Testing methods for reading JSON data
+    // (in addition it allows you to test the correct functioning of the init() method because the Field contains excepted values)
     @Test
     void fireStationReaderJsonDataTest() {
         FireStationModel exceptedResponse = new FireStationModel("908 73rd St", "1");
@@ -79,7 +86,7 @@ class ManageJsonDataTest {
 
     // Test method for writing JSON data for persons
     @Test
-    void personWriterJsonDataTest() throws IOException {
+    void personWriterJsonDataTest() throws IOException, PersonWriterException {
         // List of persons to write
         List<PersonModel> listPerson = List.of(new PersonModel("Thery", "Eddari", "", "", "", "", ""));
         // StringWriter to store output data from writeValue
@@ -111,7 +118,7 @@ class ManageJsonDataTest {
 
     // Test method for writing JSON data for fire stations
     @Test
-    void fireStationWriterJsonDataTest() throws IOException {
+    void fireStationWriterJsonDataTest() throws IOException, FireStationWriterException {
 
         // List of fire stations to write
         List<FireStationModel> listFireStation = List.of(new FireStationModel("10 rue des bois", "20"));
@@ -145,7 +152,7 @@ class ManageJsonDataTest {
 
     // Test method for writing JSON data for medical records
     @Test
-    void MedicalRecordWriterJsonDataTest() throws IOException {
+    void MedicalRecordWriterJsonDataTest() throws IOException, MedicalRecordWriterException {
         // List of medical records to write
         List<MedicalRecordModel> listMedicalRecord = List.of(new MedicalRecordModel("Thery", "Eddari", "", List.of(), List.of()));
         // StringWriter to store output data from writeValue
@@ -175,9 +182,10 @@ class ManageJsonDataTest {
         assertEquals(stringWriterJsonOutput.toString().substring(beginIndex, endIndex), stringWriterExpectedJsonValue.toString());
     }
 
-    // Test method for writing JSON data for medical records
+    // Test method for ensure that state of field is correct update.
     @Test
-    void ensureJsonInMemoryUpdate() throws IOException, NoSuchFieldException, IllegalAccessException {
+    void ensureJsonInMemoryUpdate() throws PersonWriterException, IOException, NoSuchFieldException, IllegalAccessException {
+
         // List of medical records to write
         List<PersonModel> listPerson = List.of(new PersonModel("Thery", "Eddari", "", "", "", "", ""));
         //Person excepted into dataJsonMemory (dataJson) in manageJsonData
@@ -192,20 +200,14 @@ class ManageJsonDataTest {
 
         // process to read the current context of the dataJson field (reflexion)
         //Initialize map to store data
-        Map<String, Object> mapDataJsonBackup = new HashMap<>();
-        try {
+
             Field dataJsonField = ManageJsonData.class.getDeclaredField("dataJson");
             dataJsonField.setAccessible(true);
             Object dataJsonBackupObject = dataJsonField.get(manageJsonData);
             dataJsonField.setAccessible(false);
-            mapDataJsonBackup = objectMapperSpy.convertValue(dataJsonBackupObject, new TypeReference<>() {});
-        } catch (NoSuchFieldException e) {
-        //"Erreur lors de la sauvegarde du contexte : champ non trouvé."
-        } catch (IllegalAccessException e) {
-        //Erreur lors de la sauvegarde du contexte : accès illégal au champ
-        } catch (Exception e) {
-        //"Erreur inattendue lors de la sauvegarde du contexte."
-        }
+
+            Map<String, Object> mapDataJsonBackup = objectMapperSpy.convertValue(dataJsonBackupObject, new TypeReference<>() {});
+
         //get persons collection of dataBackup and check the modification
         List<PersonModel> listPersonDataJsonBackup = objectMapperSpy.convertValue(mapDataJsonBackup.get("persons"), new TypeReference<>() {});
         PersonModel personExist =  listPersonDataJsonBackup.stream()
@@ -215,6 +217,46 @@ class ManageJsonDataTest {
         Assertions.assertEquals(exceptedResponse.toString(), personExist.toString());
 
     }
+
+    //Test method for un
+    @Test
+    void initializationPathWithException() throws NoSuchFieldException, IllegalAccessException{
+        // Modify the path field to make it accessible
+        Field pathField = ManageJsonData.class.getDeclaredField("path");
+        pathField.setAccessible(true);
+
+        // List of path values to test
+        String[] testPaths = {"", null, "    "};
+
+        for (String path : testPaths) {
+                // Set the path value
+                pathField.set(manageJsonData, path);
+                // Call the init() method to trigger the exception and Verify that the thrown exception is of type InitException and its cause NullPointer
+                Throwable exception = Assertions.assertThrows(InitException.class, () -> manageJsonData.init());
+                assertEquals(NullPointerException.class, exception.getCause().getClass());
+        }
+        //restore good value of path
+        pathField.set(manageJsonData, environment.getProperty("path.file"));
+        // Make the path field inaccessible after the tests
+        pathField.setAccessible(false);
+    }
+    @Test
+    void initializationReaderWithException() throws NoSuchFieldException, IllegalAccessException {
+        //modify path field to blank into manageJsonData
+        Field pathField = ManageJsonData.class.getDeclaredField("path");
+        pathField.setAccessible(true);
+        pathField.set(manageJsonData, "/wrong-path");
+        pathField.setAccessible(false);
+
+        //call method init() into a assert to reinitialize File with its in order to creat a IOException FileNotFoundException and catch its
+            Throwable exception = Assertions.assertThrows(InitException.class, () -> manageJsonData.init());
+            assertEquals(exception.getCause().getClass(), FileNotFoundException.class);
+        //restore good value of path
+        pathField.set(manageJsonData, environment.getProperty("path.file"));
+        // Make the path field inaccessible after the tests
+        pathField.setAccessible(false);
+    }
+
 
     // Method to create a StringWriter for Person data to test the formatting and response waiting
     private StringWriter getStringWriterForPerson() {

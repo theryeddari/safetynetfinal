@@ -11,10 +11,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.openclassrooms.safetynet.exceptions.ManageJsonDataCustomException.*;
 
 @Repository
 public class ManageJsonData {
@@ -29,20 +30,18 @@ public class ManageJsonData {
 
     // Method called after constructing the object to initialize the file and read the JSON data, because Spring annotations are read last (avoid an empty path)
     @PostConstruct
-    public void init() throws IOException {
+    public void init() throws  InitException {
+        try{
+        if(path.isBlank() || path.isEmpty()) {throw new NullPointerException();}
         this.file = new File(path);
-        globalReaderJsonData();
+        this.dataJson = objectMapper.readValue(file, new TypeReference<>() {});
+    }catch(Exception e){
+            throw new InitException(e);
+        }
     }
-
     // Constructor to inject the ObjectMapper
     public ManageJsonData(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
-    }
-
-    // Method to read global JSON data from file
-    private void globalReaderJsonData() throws IOException {
-        this.dataJson = objectMapper.readValue(file, new TypeReference<>() {
-        });
     }
 
     // Method to read fire station data from JSON data
@@ -65,20 +64,32 @@ public class ManageJsonData {
 
 
     // Method to write people data to the JSON file
-    public void personWriterJsonData(List<PersonModel> list) throws IOException {
+    public void personWriterJsonData(List<PersonModel> list) throws PersonWriterException {
+        try {
         this.dataJson.replace("persons", list);
         objectMapper.writer(OutputFormatIndentationJsonData.getInstance()).writeValue(file, dataJson);
+    }catch (Exception e){
+            throw new PersonWriterException(e);
+        }
     }
 
     // Method to write fire station data to the JSON file
-    public void fireStationWriterJsonData(List<FireStationModel> list) throws IOException {
+    public void fireStationWriterJsonData(List<FireStationModel> list) throws FireStationWriterException {
+        try{
         this.dataJson.replace("firestations", list);
         objectMapper.writer(OutputFormatIndentationJsonData.getInstance()).writeValue(file, dataJson);
+    }catch (Exception e){
+    throw new FireStationWriterException(e);
+        }
     }
 
     // Method to write medical records to JSON file
-    public void medicalRecordWriterJsonData(List<MedicalRecordModel> list) throws IOException {
+    public void medicalRecordWriterJsonData(List<MedicalRecordModel> list) throws MedicalRecordWriterException {
+        try {
         this.dataJson.replace("medicalrecords", list);
         objectMapper.writer(OutputFormatIndentationJsonData.getInstance()).writeValue(file, dataJson);
+    }catch (Exception e){
+        throw new MedicalRecordWriterException(e);
+        }
     }
 }
