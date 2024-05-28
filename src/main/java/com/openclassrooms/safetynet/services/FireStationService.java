@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
-import static com.openclassrooms.safetynet.exceptions.ManageJsonDataCustomException.*;
+import static com.openclassrooms.safetynet.exceptions.FireStationCustomException.*;
 
 @Service
 public class FireStationService {
@@ -23,59 +23,68 @@ public class FireStationService {
     }
 
     // Method to add a new fire station
-    public void addFireStation(AddFireStationDto newFireStation) throws FireStationWriterException {
-        List<FireStationModel> listFireStationExisting = manageJsonData.fireStationReaderJsonData();
-        // Check if the fire station already exists
-        if (listFireStationExisting.stream().noneMatch(fireStationExist -> fireStationExist.getStation().equals(newFireStation.getStation()) && fireStationExist.getAddress().equals(newFireStation.getAddress()))) {
-            // Add the new fire station if it does not exist
-            listFireStationExisting.add(new FireStationModel(newFireStation.getAddress(), newFireStation.getStation()));
+    public void addFireStation(AddFireStationDto newFireStation) throws AddFireStationException {
+        try {
+            List<FireStationModel> listFireStationExisting = manageJsonData.fireStationReaderJsonData();
+            // Check if the fire station already exists
+            if (listFireStationExisting.stream().noneMatch(fireStationExist -> fireStationExist.getStation().equals(newFireStation.getStation()) && fireStationExist.getAddress().equals(newFireStation.getAddress()))) {
+                // Add the new fire station if it does not exist
+                listFireStationExisting.add(new FireStationModel(newFireStation.getAddress(), newFireStation.getStation()));
+            }else{ throw new AlreadyExistFireStationException();}
+            // Write the updated list of fire station back to the JSON file
+            manageJsonData.fireStationWriterJsonData(listFireStationExisting);
+        } catch (Exception e) {
+            throw new AddFireStationException(e);
         }
-        // Write the updated list of fire station back to the JSON file
-        manageJsonData.fireStationWriterJsonData(listFireStationExisting);
     }
 
     // Method to update an existing fire station
-    public void updateFireStation(UpdateFireStationDto updateFireStation) throws FireStationWriterException {
-        List<FireStationModel> listFireStationExisting = manageJsonData.fireStationReaderJsonData();
-        //get the reference to the filtered fire station object
-        Optional<FireStationModel> wantedFireStationUpdate = listFireStationExisting.stream().filter(fireStation ->
-                fireStation.getStation().equals(updateFireStation.getStation())
-                        && fireStation.getAddress().equals(updateFireStation.getAddress())).findFirst();
-        // If there is a reference, access the object and modify its properties
-        wantedFireStationUpdate.ifPresent(fireStation -> {
-            fireStation.setAddress(updateFireStation.getAddress());
-            fireStation.setStation(updateFireStation.getNewNumberStation());
-        });
-        // Write the updated list of fire station back to the JSON file
-        manageJsonData.fireStationWriterJsonData(listFireStationExisting);
+    public void updateFireStation(UpdateFireStationDto updateFireStation) throws UpdateFireStationException {
+        try{
+            List<FireStationModel> listFireStationExisting = manageJsonData.fireStationReaderJsonData();
+            //get the reference to the filtered fire station object
+            Optional<FireStationModel> wantedFireStationUpdate = listFireStationExisting.stream().filter(fireStation ->
+                    fireStation.getStation().equals(updateFireStation.getStation())
+                            && fireStation.getAddress().equals(updateFireStation.getAddress())).findFirst();
+            if(wantedFireStationUpdate.isEmpty()){throw new NotFoundFireStationException();}
+            // If there is a reference, access the object and modify its properties
+            wantedFireStationUpdate.ifPresent(fireStation -> {
+                    fireStation.setAddress(updateFireStation.getAddress());
+                    fireStation.setStation(updateFireStation.getNewNumberStation());
+            });
+            // Write the updated list of fire station back to the JSON file
+            manageJsonData.fireStationWriterJsonData(listFireStationExisting);
+        }catch(Exception e){
+            throw new UpdateFireStationException(e);
+        }
     }
 
     // Method to delete an existing fire station
-    public void deleteFireStation(DeleteFireStationDto deleteFireStation) throws FireStationWriterException {
+    public void deleteFireStation(DeleteFireStationDto deleteFireStation) throws DeleteFireStationException {
+        try{
         List<FireStationModel> listFireStationExisting = manageJsonData.fireStationReaderJsonData();
-        if (deleteFireStation.getStation() == null && deleteFireStation.getAddress() == null) {
-            //TODO: exception
-
-            // Remove the fire station if it matches
+        if ((deleteFireStation.getStation() == null || deleteFireStation.getStation().isBlank()) && (deleteFireStation.getAddress() == null || deleteFireStation.getAddress().isBlank())) {
+            throw new MissingFireStationArgument();
         } else {
             // Remove all station fire with this address
-            if (deleteFireStation.getStation() == null || deleteFireStation.getStation().isBlank()) {
-                if(!listFireStationExisting.removeIf(fireStation -> fireStation.getAddress().equals(deleteFireStation.getAddress()))){
-                    //TODO : exception
+                if(deleteFireStation.getStation() == null || deleteFireStation.getStation().isBlank()
+                    && listFireStationExisting.removeIf(fireStation -> fireStation.getAddress().equals(deleteFireStation.getAddress()))){
+                    //TODO : LOG
                 }
-            // Remove all station fire with this number station
-            } else if (deleteFireStation.getAddress() == null || deleteFireStation.getAddress().isBlank()) {
-                if(!listFireStationExisting.removeIf(fireStation -> fireStation.getStation().equals(deleteFireStation.getStation()))){
-                    //TODO : exception
+                // Remove all station fire with this number station
+                else if(deleteFireStation.getAddress() == null || deleteFireStation.getAddress().isBlank()
+                    && listFireStationExisting.removeIf(fireStation -> fireStation.getStation().equals(deleteFireStation.getStation()))){
+                    //TODO : LOG
                 }
-            // Remove only fire station with this number station and address
-            } else {
-                if(listFireStationExisting.removeIf(fireStation -> fireStation.getAddress().equals(deleteFireStation.getAddress()) && fireStation.getStation().equals(deleteFireStation.getStation()))){
-                    //TODO : exception
+                // Remove only fire station with this number station and address
+                else if(listFireStationExisting.removeIf(fireStation -> fireStation.getAddress().equals(deleteFireStation.getAddress()) && fireStation.getStation().equals(deleteFireStation.getStation()))){
+                    //TODO : LOG
                 }
-            }
+                else {throw new NotFoundFireStationException();}
         }
         // Write the updated list of fire station back to the JSON file
         manageJsonData.fireStationWriterJsonData(listFireStationExisting);
+    }catch (Exception e){
+        throw new DeleteFireStationException(e);}
     }
 }
