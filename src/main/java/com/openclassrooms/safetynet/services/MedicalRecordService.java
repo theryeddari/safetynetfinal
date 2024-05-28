@@ -7,7 +7,6 @@ import com.openclassrooms.safetynet.models.MedicalRecordModel;
 import com.openclassrooms.safetynet.repository.ManageJsonData;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -65,7 +64,7 @@ public class MedicalRecordService {
             // Remove the medical record if it matches the given first name and last name
             if (listMedicalRecordExisting.removeIf(medicalRecord -> medicalRecord.getFirstName().equals(deleteMedicalRecord.getFirstName()) && medicalRecord.getLastName().equals(deleteMedicalRecord.getLastName()))) {
                 // Write the updated list of medical records back to the JSON file
-                manageJsonData.medicalRecordWriterJsonData(new ArrayList<>());
+                manageJsonData.medicalRecordWriterJsonData(listMedicalRecordExisting);
             } else {
                 throw new NotFoundMedicalRecordException();
             }
