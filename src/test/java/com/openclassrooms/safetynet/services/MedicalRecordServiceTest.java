@@ -61,7 +61,7 @@ public class MedicalRecordServiceTest {
     }
     @Test
     void addMedicalRecordWithMedicalRecordAlreadyException() throws MedicalRecordWriterException {
-        //use of a modifiable table to store an initial list which can be dynamically modified by the method tested thanks to the reference
+        //use  an initial list in order to find a correspondance between list and medical record wanted with exception AlreadyException Throw
         List<MedicalRecordModel> listDataJsonMedicalRecordForMock = new ArrayList<>(List.of(new MedicalRecordModel("Jean","Jacque","",List.of(""),List.of(""))));
         //stub the mock method to introduce our list into the method
         when(manageJsonDataSpy.medicalRecordReaderJsonData()).thenReturn(listDataJsonMedicalRecordForMock);
@@ -116,7 +116,7 @@ public class MedicalRecordServiceTest {
     void updateMedicalRecordWithNotFoundException() throws MedicalRecordWriterException {
         //indicates not to launch the write method on the file
         doNothing().when(manageJsonDataSpy).medicalRecordWriterJsonData(anyList());
-        //person to add and already exist to start exception
+        //person to add
         UpdateMedicalRecordDto updateMedicalRecord = new UpdateMedicalRecordDto("Arnault","Brie","04/13/2000",List.of("aspirin"),List.of("pollen"));
         Throwable exception = assertThrows(UpdateMedicalRecordException.class, () -> medicalRecordService.updateMedicalRecord(updateMedicalRecord));
         assertEquals(exception.getCause().getClass(), NotFoundMedicalRecordException.class);
@@ -125,8 +125,8 @@ public class MedicalRecordServiceTest {
     @Test
     void deleteMedicalRecordTest() throws MedicalRecordWriterException, DeleteMedicalRecordException {
         DeleteMedicalRecordDto deleteMedicalRecord = new DeleteMedicalRecordDto("John","Boyd");
+        //list to store modification of  list writer and check result
         List<MedicalRecordModel> listDeletedMedicalRecord = new ArrayList<>();
-        doNothing().when(manageJsonDataSpy).medicalRecordWriterJsonData(anyList());
         doAnswer(invocation -> {
             listDeletedMedicalRecord.addAll(invocation.getArgument(0));
             return null;
@@ -162,7 +162,7 @@ public class MedicalRecordServiceTest {
     void deleteMedicalRecordWithNotFoundException() throws MedicalRecordWriterException {
         //indicates not to launch the write method on the file
         doNothing().when(manageJsonDataSpy).medicalRecordWriterJsonData(anyList());
-        //person to add and already exist to start exception
+        //medical record to delete and not exist to start exception
         DeleteMedicalRecordDto deleteMedicalRecord = new DeleteMedicalRecordDto("Arnault","Brie");
         Throwable exception = assertThrows(DeleteMedicalRecordException.class, () -> medicalRecordService.deleteMedicalRecord(deleteMedicalRecord));
         assertEquals(exception.getCause().getClass(), NotFoundMedicalRecordException.class);
