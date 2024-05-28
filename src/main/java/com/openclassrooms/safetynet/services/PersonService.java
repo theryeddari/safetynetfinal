@@ -25,7 +25,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.openclassrooms.safetynet.exceptions.ManageJsonDataCustomException.*;
+import static com.openclassrooms.safetynet.exceptions.PersonCustomException.*;
 
 @Service
 public class PersonService {
@@ -286,40 +286,56 @@ public class PersonService {
     }
 
     // Method to add a new person
-    public void addPerson(AddPersonDto person) throws PersonWriterException {
-        List<PersonModel> listPersonsExisting = manageJsonData.personReaderJsonData();
-        // Check if the person already exists
-        if (listPersonsExisting.stream().noneMatch(personExist -> personExist.getLastName().equals(person.getLastName()) && personExist.getFirstName().equals(person.getFirstName()))) {
-            // Add the new person if it does not exist
-            listPersonsExisting.add(new PersonModel(person.getFirstName(), person.getLastName(), person.getAddress(), person.getCity(), person.getZip(), person.getPhone(), person.getEmail()));
+    public void addPerson(AddPersonDto person) throws AddPersonException {
+        try {
+            List<PersonModel> listPersonsExisting = manageJsonData.personReaderJsonData();
+            // Check if the person already exists
+            if (listPersonsExisting.stream().noneMatch(personExist -> personExist.getLastName().equals(person.getLastName()) && personExist.getFirstName().equals(person.getFirstName()))) {
+                // Add the new person if it does not exist
+                listPersonsExisting.add(new PersonModel(person.getFirstName(), person.getLastName(), person.getAddress(), person.getCity(), person.getZip(), person.getPhone(), person.getEmail()));
+            }else{throw new AlreadyExistPersonException();}
+            // Write the updated list of medical records back to the JSON file
+            manageJsonData.personWriterJsonData(listPersonsExisting);
+        } catch (Exception e) {
+            throw new AddPersonException(e);
         }
-        // Write the updated list of medical records back to the JSON file
-        manageJsonData.personWriterJsonData(listPersonsExisting);
     }
     // Method to update an existing person
-    public void updatePerson(UpdatePersonDto updatePerson) throws PersonWriterException {
-        List<PersonModel> listPersonsExisting = manageJsonData.personReaderJsonData();
-        // Get the reference to the filtered person object
-        Optional<PersonModel> wantedPersonUpdate = listPersonsExisting.stream().filter(person -> person.getFirstName().equals(updatePerson.getFirstName()) && person.getLastName().equals(updatePerson.getLastName())).findFirst();
-        // If there is a reference, access the object and modify its properties
-        wantedPersonUpdate.ifPresent(modifyPerson -> {
-            modifyPerson.setCity(updatePerson.getCity());
-            modifyPerson.setPhone(updatePerson.getPhone());
-            modifyPerson.setEmail(updatePerson.getEmail());
-            modifyPerson.setAddress(updatePerson.getAddress());
-            modifyPerson.setZip(updatePerson.getZip());
-        });
-        // Write the updated list of person back to the JSON file
-        manageJsonData.personWriterJsonData(listPersonsExisting);
+    public void updatePerson(UpdatePersonDto updatePerson) throws UpdatePersonException {
+        try {
+            List<PersonModel> listPersonsExisting = manageJsonData.personReaderJsonData();
+            // Get the reference to the filtered person object
+            Optional<PersonModel> wantedPersonUpdate = listPersonsExisting.stream().filter(person -> person.getFirstName().equals(updatePerson.getFirstName()) && person.getLastName().equals(updatePerson.getLastName())).findFirst();
+            if(wantedPersonUpdate.isEmpty()){throw new NotFoundPersonException();}
+
+            // If there is a reference, access the object and modify its properties
+            wantedPersonUpdate.ifPresent(modifyPerson -> {
+                modifyPerson.setCity(updatePerson.getCity());
+                modifyPerson.setPhone(updatePerson.getPhone());
+                modifyPerson.setEmail(updatePerson.getEmail());
+                modifyPerson.setAddress(updatePerson.getAddress());
+                modifyPerson.setZip(updatePerson.getZip());
+            });
+            // Write the updated list of person back to the JSON file
+            manageJsonData.personWriterJsonData(listPersonsExisting);
+        } catch (Exception e) {
+            throw new UpdatePersonException(e);
+        }
     }
 
     // Method to delete an existing person
-    public void deletePerson(DeletePersonDto deletePerson) throws PersonWriterException {
-        List<PersonModel> listPersonsExisting = manageJsonData.personReaderJsonData();
-        // Remove the person if it matches the given first name and last name
-        if(listPersonsExisting.removeIf(person -> person.getFirstName().equals(deletePerson.getFirstName()) && person.getLastName().equals(deletePerson.getLastName()))){
-            // Write the updated list of medical records back to the JSON file
-            manageJsonData.personWriterJsonData(listPersonsExisting);
-        } //TODO:: add exception.
+    public void deletePerson(DeletePersonDto deletePerson) throws DeletePersonException {
+        try {
+            List<PersonModel> listPersonsExisting = manageJsonData.personReaderJsonData();
+            // Remove the person if it matches the given first name and last name
+            if (listPersonsExisting.removeIf(person -> person.getFirstName().equals(deletePerson.getFirstName()) && person.getLastName().equals(deletePerson.getLastName()))) {
+                // Write the updated list of medical records back to the JSON file
+                manageJsonData.personWriterJsonData(listPersonsExisting);
+            }else {
+                throw new NotFoundPersonException();
+            }
+        } catch(Exception e){
+            throw new DeletePersonException(e);
+        }
     }
 }

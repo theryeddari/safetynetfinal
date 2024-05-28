@@ -1,10 +1,9 @@
 package com.openclassrooms.safetynet.services;
 
-import com.openclassrooms.safetynet.dto.requests.AddPersonDto;
-import com.openclassrooms.safetynet.dto.requests.DeletePersonDto;
-import com.openclassrooms.safetynet.dto.requests.UpdatePersonDto;
+import com.openclassrooms.safetynet.dto.requests.*;
 import com.openclassrooms.safetynet.dto.responses.*;
 import com.openclassrooms.safetynet.dto.responses.submodels.*;
+import com.openclassrooms.safetynet.exceptions.PersonCustomException;
 import com.openclassrooms.safetynet.models.PersonModel;
 import com.openclassrooms.safetynet.repository.ManageJsonData;
 import org.junit.jupiter.api.Assertions;
@@ -13,11 +12,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static com.openclassrooms.safetynet.exceptions.ManageJsonDataCustomException.*;
+import static com.openclassrooms.safetynet.exceptions.PersonCustomException.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 @SpringBootTest
@@ -87,7 +90,7 @@ class PersonServiceTest {
         Assertions.assertTrue(reply.getMail().contains(exceptedMail));
     }
     @Test
-    void addPersonTest() throws PersonWriterException {
+    void addPersonTest() throws PersonWriterException, AddPersonException {
         //use of a modifiable table to store an initial list which can be dynamically modified by the method tested thanks to the reference
         List<PersonModel> listDataJsonPersonForMock = new ArrayList<>(List.of(new PersonModel("Jean", "Jacque", "bla", "bla", "", "", "")));
         //stub the mock method to introduce our list into the method
@@ -100,7 +103,37 @@ class PersonServiceTest {
         Assertions.assertTrue(listDataJsonPersonForMock.stream().anyMatch(person -> person.getLastName().equals(newPerson.getLastName()) && person.getFirstName().equals(newPerson.getFirstName())));
     }
     @Test
-    void updatePersonTest() throws PersonWriterException {
+    void addPersonWithException() throws PersonWriterException {
+        //creation of the Exception chain
+        IOException ioException = new IOException();
+        PersonWriterException exceptionChain = new PersonWriterException(ioException);
+
+        //stub the mock method to throw ExceptionChain
+        doThrow(exceptionChain).when(manageJsonDataSpy).personWriterJsonData(anyList());
+
+        AddPersonDto newPerson = new AddPersonDto("Jean","Jacque","","","","","");
+
+        Throwable exception = assertThrows(AddPersonException.class, () -> personService.addPerson(newPerson));
+        assertEquals(exception.getCause().getClass(), PersonWriterException.class);
+        assertEquals(exception.getCause().getMessage(), exceptionChain.getMessage());
+    }
+    @Test
+    void addPersonWithMedicalRecordAlreadyException() throws PersonWriterException {
+        //use  an initial list in order to find a correspondance between list and person wanted with exception AlreadyException Throw
+        List<PersonModel> listDataJsonPersonForMock = new ArrayList<>(List.of(new PersonModel("Jean","Jacque","","","","","")));
+        //stub the mock method to introduce our list into the method
+        when(manageJsonDataSpy.personReaderJsonData()).thenReturn(listDataJsonPersonForMock);
+        //indicates not to launch the write method on the file
+        doNothing().when(manageJsonDataSpy).personWriterJsonData(anyList());
+        //person to add and already exist to start exception
+        AddPersonDto newPerson = new AddPersonDto("Jean","Jacque","","","","","");
+        Throwable exception = assertThrows(AddPersonException.class, () -> personService.addPerson(newPerson));
+        assertEquals(exception.getCause().getClass(), PersonCustomException.AlreadyExistPersonException.class);
+    }
+
+
+    @Test
+    void updatePersonTest() throws PersonWriterException, UpdatePersonException {
         UpdatePersonDto updatePerson = new UpdatePersonDto("John","Boyd","","","","","");
         List<PersonModel> listUpdatedPersons = new ArrayList<>();
         doNothing().when(manageJsonDataSpy).personWriterJsonData(anyList());
@@ -121,8 +154,39 @@ class PersonServiceTest {
                         && person.getZip().equals(updatePerson.getZip())
         ));
     }
+
     @Test
-    void deletePersonTest() throws PersonWriterException {
+    void updatePersonWithException() throws PersonWriterException {
+        //use  an initial list in order to find a correspondance between list and person wanted without exception NotFound Throw
+        List<PersonModel> listDataJsonPersonForMock = new ArrayList<>(List.of(new PersonModel("Jean","Jacque","","","","","")));
+        //stub the mock method to introduce our list into the method
+        when(manageJsonDataSpy.personReaderJsonData()).thenReturn(listDataJsonPersonForMock);
+        //creation of the Exception chain
+        IOException ioException = new IOException();
+        PersonWriterException exceptionChain = new PersonWriterException(ioException);
+
+        //stub the mock method to throw ExceptionChain
+        doThrow(exceptionChain).when(manageJsonDataSpy).personWriterJsonData(anyList());
+
+        UpdatePersonDto updatePerson = new UpdatePersonDto("Jean","Jacque","","","","","");
+
+        Throwable exception = assertThrows(UpdatePersonException.class, () -> personService.updatePerson(updatePerson));
+        assertEquals(exception.getCause().getClass(), PersonWriterException.class);
+        assertEquals(exception.getCause().getMessage(), exceptionChain.getMessage());
+    }
+
+    @Test
+    void updateMedicalRecordWithNotFoundException() throws PersonWriterException {
+        //indicates not to launch the write method on the file
+        doNothing().when(manageJsonDataSpy).personWriterJsonData(anyList());
+        //person to add
+        UpdatePersonDto updatePerson = new UpdatePersonDto("Jean","Jacque","","","","","");
+        Throwable exception = assertThrows(UpdatePersonException.class, () -> personService.updatePerson(updatePerson));
+        assertEquals(exception.getCause().getClass(), NotFoundPersonException.class);
+    }
+
+    @Test
+    void deletePersonTest() throws PersonWriterException, DeletePersonException {
         DeletePersonDto deletePerson = new DeletePersonDto("John","Boyd");
         List<PersonModel> listUpdatedPersons = new ArrayList<>();
         doNothing().when(manageJsonDataSpy).personWriterJsonData(anyList());
@@ -136,5 +200,35 @@ class PersonServiceTest {
         Assertions.assertTrue(listUpdatedPersons.stream().noneMatch(person ->
                 person.getLastName().equals(deletePerson.getLastName()) && person.getFirstName().equals(deletePerson.getFirstName()))
         );
+    }
+
+    @Test
+    void deletePersonWithException() throws PersonWriterException {
+        //use  an initial list in order to find a correspondance between list and person wanted without exception NotFound Throw
+        List<PersonModel> listDataJsonPersonForMock = new ArrayList<>(List.of(new PersonModel("Jean","Jacque","","","","","")));
+        //stub the mock method to introduce our list into the method
+        when(manageJsonDataSpy.personReaderJsonData()).thenReturn(listDataJsonPersonForMock);
+        //creation of the Exception chain
+        IOException ioException = new IOException();
+        PersonWriterException exceptionChain = new PersonWriterException(ioException);
+
+        //stub the mock method to throw ExceptionChain
+        doThrow(exceptionChain).when(manageJsonDataSpy).personWriterJsonData(anyList());
+
+        DeletePersonDto deletePerson = new DeletePersonDto("Jean","Jacque");
+
+        Throwable exception = assertThrows(DeletePersonException.class, () -> personService.deletePerson(deletePerson));
+        assertEquals(exception.getCause().getClass(), PersonWriterException.class);
+        assertEquals(exception.getCause().getMessage(), exceptionChain.getMessage());
+    }
+
+    @Test
+    void deletePersonWithNotFoundException() throws PersonWriterException {
+        //indicates not to launch the write method on the file
+        doNothing().when(manageJsonDataSpy).personWriterJsonData(anyList());
+        //person to delete and not exist to start exception
+        DeletePersonDto deletePerson = new DeletePersonDto("Arnault","Brie");
+        Throwable exception = assertThrows(DeletePersonException.class, () -> personService.deletePerson(deletePerson));
+        assertEquals(exception.getCause().getClass(), NotFoundPersonException.class);
     }
 }
