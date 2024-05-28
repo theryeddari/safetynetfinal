@@ -8,8 +8,8 @@ import lombok.ToString;
 @Getter
 @AllArgsConstructor
 @ToString
-public class AddPersonDto {
-    public AddPersonDto(){
+public class UpdatePersonDto {
+    public UpdatePersonDto(){
         //constructor for jackson serialisation
     }
     @NonNull

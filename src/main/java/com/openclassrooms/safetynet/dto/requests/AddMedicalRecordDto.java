@@ -8,8 +8,8 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @ToString
-public class AddOrUpdateMedicalRecordDto {
-    public AddOrUpdateMedicalRecordDto() {
+public class AddMedicalRecordDto {
+    public AddMedicalRecordDto() {
         //constructor for jackson serialisation
     }
     String firstName;

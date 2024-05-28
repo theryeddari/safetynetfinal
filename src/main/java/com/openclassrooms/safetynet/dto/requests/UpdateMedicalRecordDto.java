@@ -2,23 +2,20 @@ package com.openclassrooms.safetynet.dto.requests;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.ToString;
+
+import java.util.List;
 
 @Getter
 @AllArgsConstructor
 @ToString
-public class AddPersonDto {
-    public AddPersonDto(){
+public class UpdateMedicalRecordDto {
+    public UpdateMedicalRecordDto() {
         //constructor for jackson serialisation
     }
-    @NonNull
     String firstName;
-    @NonNull
     String lastName;
-    String address;
-    String city;
-    String zip;
-    String phone;
-    String email;
+    String birthdate;
+    List<String> medications;
+    List<String> allergies;
 }
