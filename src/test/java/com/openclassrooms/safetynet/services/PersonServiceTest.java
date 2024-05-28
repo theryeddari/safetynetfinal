@@ -1,7 +1,8 @@
 package com.openclassrooms.safetynet.services;
 
-import com.openclassrooms.safetynet.dto.requests.AddOrUpdatePersonDto;
+import com.openclassrooms.safetynet.dto.requests.AddPersonDto;
 import com.openclassrooms.safetynet.dto.requests.DeletePersonDto;
+import com.openclassrooms.safetynet.dto.requests.UpdatePersonDto;
 import com.openclassrooms.safetynet.dto.responses.*;
 import com.openclassrooms.safetynet.dto.responses.submodels.*;
 import com.openclassrooms.safetynet.models.PersonModel;
@@ -94,13 +95,13 @@ class PersonServiceTest {
         //indicates not to launch the write method on the file
         doNothing().when(manageJsonDataSpy).personWriterJsonData(anyList());
         //person to add
-        AddOrUpdatePersonDto newPerson = new AddOrUpdatePersonDto("thery","eddari","","","","","");
+        AddPersonDto newPerson = new AddPersonDto("thery","eddari","","","","","");
         personService.addPerson(newPerson);
         Assertions.assertTrue(listDataJsonPersonForMock.stream().anyMatch(person -> person.getLastName().equals(newPerson.getLastName()) && person.getFirstName().equals(newPerson.getFirstName())));
     }
     @Test
     void updatePersonTest() throws PersonWriterException {
-        AddOrUpdatePersonDto updatePerson = new AddOrUpdatePersonDto("John","Boyd","","","","","");
+        UpdatePersonDto updatePerson = new UpdatePersonDto("John","Boyd","","","","","");
         List<PersonModel> listUpdatedPersons = new ArrayList<>();
         doNothing().when(manageJsonDataSpy).personWriterJsonData(anyList());
         doAnswer(invocation -> {

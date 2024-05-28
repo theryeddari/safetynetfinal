@@ -1,7 +1,8 @@
 package com.openclassrooms.safetynet.services;
 
-import com.openclassrooms.safetynet.dto.requests.AddOrUpdatePersonDto;
+import com.openclassrooms.safetynet.dto.requests.AddPersonDto;
 import com.openclassrooms.safetynet.dto.requests.DeletePersonDto;
+import com.openclassrooms.safetynet.dto.requests.UpdatePersonDto;
 import com.openclassrooms.safetynet.dto.responses.ChildAlertReplyPersonDTO;
 import com.openclassrooms.safetynet.dto.responses.FireReplyPersonDTO;
 import com.openclassrooms.safetynet.dto.responses.FireStationReplyPersonDTO;
@@ -285,7 +286,7 @@ public class PersonService {
     }
 
     // Method to add a new person
-    public void addPerson(AddOrUpdatePersonDto person) throws PersonWriterException {
+    public void addPerson(AddPersonDto person) throws PersonWriterException {
         List<PersonModel> listPersonsExisting = manageJsonData.personReaderJsonData();
         // Check if the person already exists
         if (listPersonsExisting.stream().noneMatch(personExist -> personExist.getLastName().equals(person.getLastName()) && personExist.getFirstName().equals(person.getFirstName()))) {
@@ -296,7 +297,7 @@ public class PersonService {
         manageJsonData.personWriterJsonData(listPersonsExisting);
     }
     // Method to update an existing person
-    public void updatePerson(AddOrUpdatePersonDto updatePerson) throws PersonWriterException {
+    public void updatePerson(UpdatePersonDto updatePerson) throws PersonWriterException {
         List<PersonModel> listPersonsExisting = manageJsonData.personReaderJsonData();
         // Get the reference to the filtered person object
         Optional<PersonModel> wantedPersonUpdate = listPersonsExisting.stream().filter(person -> person.getFirstName().equals(updatePerson.getFirstName()) && person.getLastName().equals(updatePerson.getLastName())).findFirst();
