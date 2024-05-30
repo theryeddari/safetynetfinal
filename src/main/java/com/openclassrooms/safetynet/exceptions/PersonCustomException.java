@@ -44,4 +44,58 @@ public class PersonCustomException extends Exception {
         }
     }
 
+    public static class NoMatchesFoundException extends PersonCustomException {
+        public NoMatchesFoundException() {
+            super("No match found in the database, please check your entry or create it there");
+        }
+    }
+
+    public static class FireStationResponseException extends PersonCustomException {
+        public FireStationResponseException(Exception cause) {
+            super("Error while executing query, additional information : "  +cause.getClass() +" "+ cause.getMessage(), cause);
+        }
+    }
+
+    public static class ChildAlertResponseException extends PersonCustomException {
+        public ChildAlertResponseException(Exception cause) {
+            super("Error while executing query, additional information : "  +cause.getClass() +" "+ cause.getMessage(), cause);
+        }
+    }
+
+    public static class PhoneAlertResponseException extends PersonCustomException {
+        public PhoneAlertResponseException(Exception cause) {
+            super("Error while executing query, additional information : "  +cause.getClass() +" "+ cause.getMessage(), cause);
+        }
+    }
+
+    public static class FireResponseException extends PersonCustomException {
+        public FireResponseException(Exception cause) {
+            super("Error while executing query, additional information : "  +cause.getClass() +" "+ cause.getMessage(), cause);
+        }
+    }
+
+    public static class FloodStationResponseException extends PersonCustomException {
+        public FloodStationResponseException(Exception cause) {
+            super("Error while executing query, additional information : "  +cause.getClass() +" "+ cause.getMessage(), cause);
+        }
+    }
+
+    public static class PersonInfoResponseException extends PersonCustomException {
+        public PersonInfoResponseException(Exception cause) {
+            super("Error while executing query, additional information : "  +cause.getClass() +" "+ cause.getMessage(), cause);
+        }
+    }
+
+    public static class CommunityEmailException extends PersonCustomException {
+        public CommunityEmailException(Exception cause) {
+            super("Error while executing query, additional information : "  +cause.getClass() +" "+ cause.getMessage(), cause);
+
+        }
+    }
+
+    public static class FactoringConcatStreamMethodException extends PersonCustomException {
+        public FactoringConcatStreamMethodException(Exception cause) {
+            super("Error while assembly data for query, additional information : "  +cause.getClass() +" "+ cause.getMessage(), cause);
+        }
+    }
 }
