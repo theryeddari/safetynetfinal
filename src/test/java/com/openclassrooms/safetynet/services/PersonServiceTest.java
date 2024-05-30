@@ -4,6 +4,7 @@ import com.openclassrooms.safetynet.dto.requests.*;
 import com.openclassrooms.safetynet.dto.responses.*;
 import com.openclassrooms.safetynet.dto.responses.submodels.*;
 import com.openclassrooms.safetynet.exceptions.PersonCustomException;
+import com.openclassrooms.safetynet.models.MedicalRecordModel;
 import com.openclassrooms.safetynet.models.PersonModel;
 import com.openclassrooms.safetynet.repository.ManageJsonData;
 import org.junit.jupiter.api.Assertions;
@@ -34,16 +35,28 @@ class PersonServiceTest {
     }
 
     @Test
-    void fireStationReplyTest() {
+    void fireStationReplyTest() throws FireStationResponseException {
         FireStationReplyPersonDTO reply = personService.fireStationReply("2");
         SubFireStationModelReplyForCount countExcepted = new SubFireStationModelReplyForCount("4", "1");
         SubFireStationReplyPerson personExcepted = new SubFireStationReplyPerson("Jonanathan","Marrack","29 15th St","Culver","97451","841-874-6513");
-
         Assertions.assertEquals(countExcepted.toString(),reply.getCountPerson().toString());
         Assertions.assertEquals(List.of(personExcepted).toString(), reply.getPersons().stream().filter(listPerson -> listPerson.getFirstName().equals("Jonanathan") && listPerson.getLastName().equals("Marrack")).toList().toString());
     }
+
     @Test
-    void childAlertReplyTest() {
+    void fireStationReplyWithException() {
+        //creation of the Exception chain
+        RuntimeException runtimeException = new RuntimeException();
+        FireStationResponseException exceptionChain = new FireStationResponseException(runtimeException);
+        when(manageJsonDataSpy.fireStationReaderJsonData()).thenThrow(RuntimeException.class);
+
+        Throwable exception = assertThrows(FireStationResponseException.class, () -> personService.fireStationReply("2"));
+        assertEquals(RuntimeException.class, exception.getCause().getClass());
+        assertEquals(exceptionChain.getMessage(),exception.getMessage());
+    }
+
+    @Test
+    void childAlertReplyTest() throws ChildAlertResponseException {
         ChildAlertReplyPersonDTO reply = personService.childAlertReply("1509 Culver St");
 
         SubChildAlertReplyChildren childExcepted = new SubChildAlertReplyChildren("Tenley","Boyd","02/18/2012");
@@ -52,43 +65,153 @@ class PersonServiceTest {
         Assertions.assertEquals(List.of(adultExcepted).toString(),reply.getIdentityFamily().stream().filter(listAdult -> listAdult.getFirstName().equals("John") && listAdult.getLastName().equals("Boyd")).toList().toString());
         Assertions.assertEquals(List.of(childExcepted).toString(),reply.getChildren().stream().filter(listChildren -> listChildren.getFirstName().equals("Tenley") && listChildren.getLastName().equals("Boyd")).toList().toString());
     }
+
     @Test
-    void phoneAlertReplyTest() {
+    void childAlertReplyWithException() {
+        //creation of the Exception chain
+        RuntimeException runtimeException = new RuntimeException();
+        FactoringConcatStreamMethodException factoringConcatStreamMethodException = new FactoringConcatStreamMethodException(runtimeException);
+        ChildAlertResponseException exceptionChain = new ChildAlertResponseException(factoringConcatStreamMethodException);
+        when(manageJsonDataSpy.personReaderJsonData()).thenThrow(RuntimeException.class);
+
+        Throwable exception = assertThrows(ChildAlertResponseException.class, () -> personService.childAlertReply("rue non"));
+        assertEquals(FactoringConcatStreamMethodException.class, exception.getCause().getClass());
+        assertEquals(exceptionChain.getMessage(),exception.getMessage());
+    }
+
+    @Test
+    void phoneAlertReplyTest() throws PhoneAlertResponseException {
         PhoneAlertReplyPersonDTO reply = personService.phoneAlert("1");
         PhoneAlertReplyPersonDTO phoneExcepted = new PhoneAlertReplyPersonDTO(List.of("841-874-7462"));
 
         Assertions.assertEquals(phoneExcepted.getPhone(),reply.getPhone().stream().filter(listPhone -> listPhone.contains("841-874-7462")).toList());
     }
+
     @Test
-    void fireTest() {
+    void phoneAlertReplyWithException(){
+        //creation of the Exception chain
+        RuntimeException runtimeException = new RuntimeException();
+        PhoneAlertResponseException exceptionChain = new PhoneAlertResponseException(runtimeException);
+        when(manageJsonDataSpy.personReaderJsonData()).thenThrow(RuntimeException.class);
+
+        Throwable exception = assertThrows(PhoneAlertResponseException.class, () -> personService.phoneAlert("2"));
+        assertEquals(RuntimeException.class, exception.getCause().getClass());
+        assertEquals(exceptionChain.getMessage(),exception.getMessage());
+    }
+
+    @Test
+    void fireTest() throws FireResponseException {
         FireReplyPersonDTO reply = personService.fire("1509 Culver St");
         SubFireReplyReplyInfoPerson personInfoExcepted = new SubFireReplyReplyInfoPerson("Boyd","841-874-6512","03/06/1984", List.of("aznol:350mg, hydrapermazol:100mg"), List.of("nillacilan"));
         Assertions.assertEquals(List.of(personInfoExcepted).toString(),reply.getInfoPerson().stream().filter(listpersonInfo -> listpersonInfo.getLastName().equals("Boyd") && listpersonInfo.getBirthdate().equals("03/06/1984")).toList().toString());
     }
+
     @Test
-    void StationsTest() {
-       StationsReplyPersonDTO reply = personService.floodStation(new ArrayList<>(Arrays.asList("1", "2")));
+    void fireTestWithException(){
+        //creation of the Exception chain
+        RuntimeException runtimeException = new RuntimeException();
+        FactoringConcatStreamMethodException factoringConcatStreamMethodException = new FactoringConcatStreamMethodException(runtimeException);
+        FireResponseException exceptionChain = new FireResponseException(factoringConcatStreamMethodException);
+        when(manageJsonDataSpy.personReaderJsonData()).thenThrow(RuntimeException.class);
+
+        Throwable exception = assertThrows(FireResponseException.class, () -> personService.fire("test"));
+        assertEquals(FactoringConcatStreamMethodException.class, exception.getCause().getClass());
+        assertEquals(exceptionChain.getMessage(),exception.getMessage());
+    }
+
+    @Test
+    void floodStationsTest() throws FloodStationResponseException {
+       StationsReplyPersonDTO reply = personService.floodStation(new ArrayList<>(Arrays.asList("3", "2")));
        SubStationsReplyInfoPerson preExcepted1InfoPerson = new SubStationsReplyInfoPerson("Cadigan","841-874-7458","08/06/1945", List.of("tradoxidine:400mg"),List.of(""));
        SubStationsReplyInfoAddress preExcepted1InfoAddress = new SubStationsReplyInfoAddress("951 LoneTree Rd","Culver","97451");
-        SubStationsReplyInfoPerson preExcepted2InfoPerson = new SubStationsReplyInfoPerson("Marrack","841-874-6513","01/03/1989", List.of(""),List.of(""));
-        SubStationsReplyInfoAddress preExcepted2InfoAddress = new SubStationsReplyInfoAddress("29 15th St","Culver","97451");
+        SubStationsReplyInfoPerson preExcepted2InfoPerson = new SubStationsReplyInfoPerson("Boyd","841-874-6512","03/06/1984", List.of("aznol:350mg","hydrapermazol:100mg"),List.of("nillacilan"));
+        SubStationsReplyInfoAddress preExcepted2InfoAddress = new SubStationsReplyInfoAddress("1509 Culver St","Culver","97451");
 
         Assertions.assertTrue(reply.getListHome().stream().anyMatch(infoAddress -> infoAddress.getInfoAddress().toString().equals(preExcepted1InfoAddress.toString())));
         Assertions.assertTrue(reply.getListHome().stream().anyMatch(infoAddress -> infoAddress.getInfoPerson().toString().contains(preExcepted1InfoPerson.toString())));
         Assertions.assertTrue(reply.getListHome().stream().anyMatch(infoAddress -> infoAddress.getInfoAddress().toString().equals(preExcepted2InfoAddress.toString())));
         Assertions.assertTrue(reply.getListHome().stream().anyMatch(infoAddress -> infoAddress.getInfoPerson().toString().contains(preExcepted2InfoPerson.toString())));
-    } @Test
-    void personInfoTest() {
+    }
+
+    @Test
+    void floodStationsWithException(){
+        //creation of the Exception chain
+        RuntimeException runtimeException = new RuntimeException();
+        FactoringConcatStreamMethodException factoringConcatStreamMethodException = new FactoringConcatStreamMethodException(runtimeException);
+        FloodStationResponseException exceptionChain = new FloodStationResponseException(factoringConcatStreamMethodException);
+        when(manageJsonDataSpy.personReaderJsonData()).thenThrow(RuntimeException.class);
+
+        Throwable exception = assertThrows(FloodStationResponseException.class, () -> personService.floodStation(List.of("1","2")));
+        assertEquals(FactoringConcatStreamMethodException.class, exception.getCause().getClass());
+        assertEquals(exceptionChain.getMessage(),exception.getMessage());
+    }
+
+    @Test
+    void personInfoTest() throws PersonInfoResponseException {
         PersonInfoReplyPersonDTO reply = personService.personInfo("John", "Boyd");
         List<SubPersonInfoReplyPerson> personInfoExcepted =  List.of( new SubPersonInfoReplyPerson("Boyd","1509 Culver St","Culver","97451","jaboyd@email.com","03/06/1984",List.of("aznol:350mg, hydrapermazol:100mg"), List.of("nillacilan")));
         Assertions.assertTrue(reply.getListPerson().toString().contains(personInfoExcepted.toString()));
     }
+
     @Test
-    void communityEmailTest() {
+    void personInfoException() {
+        //creation of the Exception chain
+        RuntimeException runtimeException = new RuntimeException();
+        FactoringConcatStreamMethodException factoringConcatStreamMethodException = new FactoringConcatStreamMethodException(runtimeException);
+        PersonInfoResponseException exceptionChain = new PersonInfoResponseException(factoringConcatStreamMethodException);
+        when(manageJsonDataSpy.personReaderJsonData()).thenThrow(RuntimeException.class);
+
+        Throwable exception = assertThrows(PersonInfoResponseException.class, () -> personService.personInfo("Paul","Afond"));
+        assertEquals(FactoringConcatStreamMethodException.class, exception.getCause().getClass());
+        assertEquals(exceptionChain.getMessage(), exception.getMessage());
+    }
+
+    @Test
+    void communityEmailTest() throws CommunityEmailException {
         CommunityEmailReplyPersonDTO reply = personService.communityEmail("Culver");
         String exceptedMail = "jaboyd@email.com";
         Assertions.assertTrue(reply.getMail().contains(exceptedMail));
     }
+
+    @Test
+    void communityEmailWithException() {
+        //creation of the Exception chain
+        RuntimeException runtimeException = new RuntimeException();
+        FireResponseException exceptionChain = new FireResponseException(runtimeException);
+        when(manageJsonDataSpy.personReaderJsonData()).thenThrow(RuntimeException.class);
+
+        Throwable exception = assertThrows(CommunityEmailException.class, () -> personService.communityEmail("test"));
+        assertEquals(RuntimeException.class, exception.getCause().getClass());
+        assertEquals(exceptionChain.getMessage(),exception.getMessage());
+    }
+
+    @Test
+    void factoringConcatStreamTest() throws PersonInfoResponseException {
+        List<PersonModel> listPersonSpy = new ArrayList<>(List.of(new PersonModel("thery","eddari", "","","","","")));
+        List<MedicalRecordModel> listMedicalRecordSpy = new ArrayList<>(List.of(new MedicalRecordModel("thery","eddari","",List.of(),List.of())));
+
+        when(manageJsonDataSpy.personReaderJsonData()).thenReturn(listPersonSpy);
+        when(manageJsonDataSpy.medicalRecordReaderJsonData()).thenReturn(listMedicalRecordSpy);
+
+        //use another method who use this one to check good execution because this method is private
+        PersonInfoReplyPersonDTO returnExcepted = personService.personInfo("thery","eddari");
+        SubPersonInfoReplyPerson infoExcepted = new SubPersonInfoReplyPerson("eddari","","","","","",List.of(),List.of()) ;
+        Assertions.assertEquals(returnExcepted.getListPerson().getFirst().toString(),infoExcepted.toString());
+    }
+
+    @Test
+    void factoringConcatStreamWithException() {
+        //creation of the Exception chain
+        RuntimeException runtimeException = new RuntimeException("transmission des infos");
+        FactoringConcatStreamMethodException factoringConcatStreamMethodException = new FactoringConcatStreamMethodException(runtimeException);
+        PersonInfoResponseException exceptionChain = new PersonInfoResponseException(factoringConcatStreamMethodException);
+        when(manageJsonDataSpy.personReaderJsonData()).thenThrow(runtimeException);
+
+        Throwable exception = assertThrows(PersonInfoResponseException.class, () -> personService.personInfo("Paul","Afond"));
+        assertEquals(FactoringConcatStreamMethodException.class, exception.getCause().getClass());
+        assertEquals(exceptionChain.getMessage(), exception.getMessage());
+    }
+
     @Test
     void addPersonTest() throws PersonWriterException, AddPersonException {
         //use of a modifiable table to store an initial list which can be dynamically modified by the method tested thanks to the reference

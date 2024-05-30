@@ -12,6 +12,7 @@ import com.openclassrooms.safetynet.dto.responses.PersonInfoReplyPersonDTO;
 import com.openclassrooms.safetynet.dto.responses.CommunityEmailReplyPersonDTO;
 
 import com.openclassrooms.safetynet.dto.responses.submodels.*;
+import com.openclassrooms.safetynet.exceptions.PersonCustomException;
 import com.openclassrooms.safetynet.models.FireStationModel;
 import com.openclassrooms.safetynet.models.MedicalRecordModel;
 import com.openclassrooms.safetynet.models.PersonModel;
@@ -39,8 +40,8 @@ public class PersonService {
     }
 
     // Method to get persons and count of minor and major reply based on station number
-    public FireStationReplyPersonDTO fireStationReply(String stationNumber) {
-
+    public FireStationReplyPersonDTO fireStationReply(String stationNumber) throws FireStationResponseException {
+        try{
         // Read the list of fire stations from JSON data
         List<FireStationModel> fireStationModelList = manageJsonData.fireStationReaderJsonData();
 
@@ -56,10 +57,11 @@ public class PersonService {
                         }
                 ))
                 .values()
-                .stream()
-                // Filter groups to include only those associated with the given fire station number
-                .filter(listconcat ->
-                        listconcat.stream().anyMatch(person -> person instanceof PersonModel personModel && fireStationModelList.stream().filter(model -> model.getStation().equals(stationNumber)).toList().toString().contains(personModel.getAddress()))
+                //filter group first time to be sure its contain one MedicalRecordModel
+                .stream().filter( grouped -> grouped.stream().anyMatch(aloneModel -> aloneModel instanceof MedicalRecordModel))
+                // Filter groups second time to be sure contain one Person and include only group associated with the given fire station number
+                .filter(grouped ->
+                        grouped.stream().anyMatch(model -> model instanceof PersonModel personModel && fireStationModelList.stream().filter(fireStation -> fireStation.getStation().equals(stationNumber)).toList().toString().contains(personModel.getAddress()))
                 )
                 // Map each group to a map containing whether the person is a minor and their details
                 .map(subDto -> {
@@ -81,11 +83,14 @@ public class PersonService {
         // Create a response object containing the counts and the list of persons
         SubFireStationModelReplyForCount subFireStationModelReplyForCount = new SubFireStationModelReplyForCount(String.valueOf(adult), String.valueOf(minor));
         return new FireStationReplyPersonDTO(reply, subFireStationModelReplyForCount);
+    }catch(Exception e){
+            throw new FireStationResponseException(e);
+        }
     }
 
     // Method to get detail's children and their tutor's FullName reply based on station number
-    public ChildAlertReplyPersonDTO childAlertReply(String address) {
-
+    public ChildAlertReplyPersonDTO childAlertReply(String address) throws ChildAlertResponseException {
+        try{
         // Combine person and medical record data into a single stream, group by full name (first + last name)
         List<Object> necessaryData = factoringConcatStreamForGroupingPersonAndMedicalSameProfile()
                 // Filter groups to include only those associated with the given address
@@ -115,10 +120,14 @@ public class PersonService {
 
         // Create and return the final response object containing lists of children and adults
         return new ChildAlertReplyPersonDTO(listChild, listAdult);
+    }catch(Exception e){
+        throw new PersonCustomException.ChildAlertResponseException(e);
+        }
     }
 
     // Method to get detail's children and their tutor's FullName reply based on station number
-    public PhoneAlertReplyPersonDTO phoneAlert(String stationNumber) {
+    public PhoneAlertReplyPersonDTO phoneAlert(String stationNumber) throws PhoneAlertResponseException {
+        try{
         // Combine person and fire station data into a single stream, group by address
         List<String> listPhone = Stream.concat(Stream.of(manageJsonData.personReaderJsonData()), Stream.of(manageJsonData.fireStationReaderJsonData()))
                 .flatMap(List::stream).collect(Collectors.groupingBy(model -> {
@@ -139,11 +148,14 @@ public class PersonService {
 
         // Create and return the final response object containing the list of phone numbers
         return new PhoneAlertReplyPersonDTO(listPhone);
+    }catch(Exception e){
+            throw new PersonCustomException.PhoneAlertResponseException(e);
+        }
     }
 
     // Method to get detail's family who's living there and the station linked reply based on address person
-    public FireReplyPersonDTO fire(String address) {
-
+    public FireReplyPersonDTO fire(String address) throws FireResponseException {
+        try{
         // Combine person and medical record data into a single stream, group by full name (first + last name)
         List<SubFireReplyReplyInfoPerson> subFireReplyReplyInfoPersonList = factoringConcatStreamForGroupingPersonAndMedicalSameProfile()
                 // Filter groups to include only those associated with the given address
@@ -164,11 +176,14 @@ public class PersonService {
 
         // Create and return the final response object containing the list of persons and the station number
         return new FireReplyPersonDTO(subFireReplyReplyInfoPersonList, stationNumber);
+    }catch(Exception e){
+            throw new PersonCustomException.FireResponseException(e);
+        }
     }
 
     // Method to get detail's person living and linked at the numbers station persons must be grouped by address, reply based on station number
-    public StationsReplyPersonDTO floodStation(List<String> listStationNumber) {
-
+    public StationsReplyPersonDTO floodStation(List<String> listStationNumber) throws FloodStationResponseException {
+        try{
         // Read the list of fire stations from JSON data
         List<FireStationModel> fireStationModelList = manageJsonData.fireStationReaderJsonData();
 
@@ -227,20 +242,23 @@ public class PersonService {
 
         // Create and return the final response object containing the list of persons grouped by address
         return new StationsReplyPersonDTO(subStationsReplyInfoPersonByAddressList);
+    }catch(Exception e){
+            throw new FloodStationResponseException(e);
+        }
     }
     // Method to get detail's persons reply based on station firstName and LastName
-    public PersonInfoReplyPersonDTO personInfo(String firstName, String lastName) {
-
+    public PersonInfoReplyPersonDTO personInfo(String firstName, String lastName) throws PersonInfoResponseException {
+        try {
         // Combine person and medical record data into a single stream, group by full name (first + last name)
         List<SubPersonInfoReplyPerson> subPersonInfoReplyPersonList = factoringConcatStreamForGroupingPersonAndMedicalSameProfile()
                 // Filter groups to include only those matching the given first name and last name
                 .filter(group -> group.stream().anyMatch(model -> model instanceof PersonModel personModel && personModel.getFirstName().equals(firstName) && personModel.getLastName().equals(lastName)))
                 // Map each group to a SubPersonInfoReplyPerson object containing relevant details
                 .map(subDto -> {
-                    // Find any PersonModel object in the group, or throw an exception if not found
+                    // Find any PersonModel object in the group
                     PersonModel personModel = subDto.stream().filter(model -> model instanceof PersonModel).map(PersonModel.class::cast).findAny().orElseThrow();
 
-                    // Find any MedicalRecordModel object in the group, or throw an exception if not found
+                    // Find any MedicalRecordModel object in the group
                     MedicalRecordModel medicalRecordModel = subDto.stream().filter(model -> model instanceof MedicalRecordModel).map(MedicalRecordModel.class::cast).findAny().orElseThrow();
 
                     // Create and return a SubPersonInfoReplyPerson object with the person's details and medical record information
@@ -250,9 +268,13 @@ public class PersonService {
 
         // Create and return the final response object containing the list of persons
         return new PersonInfoReplyPersonDTO(subPersonInfoReplyPersonList);
+    }catch(Exception e){
+            throw new PersonCustomException.PersonInfoResponseException(e);
+        }
     }
     // Method to get mail's persons living in the city reply based on city
-    public CommunityEmailReplyPersonDTO communityEmail(String city) {
+    public CommunityEmailReplyPersonDTO communityEmail(String city) throws CommunityEmailException {
+        try{
         // Read the list of persons from JSON data and filter by the given city
         List<String> listEmail = manageJsonData.personReaderJsonData().stream()
                 .filter(filteringCity -> filteringCity.getCity().equals(city)) // Filter persons by city
@@ -260,10 +282,14 @@ public class PersonService {
                 .toList(); // Collect the email addresses into a list
         // Create and return the final response object containing the list of email addresses
         return new CommunityEmailReplyPersonDTO(listEmail);
+    }catch(Exception e){
+            throw new CommunityEmailException(e);
+        }
     }
 
     // Private method same code in this class in order to combine and group Medical record and Person with the same profil in one group
-    private Stream<? extends List<?>> factoringConcatStreamForGroupingPersonAndMedicalSameProfile() {
+    private Stream<? extends List<?>> factoringConcatStreamForGroupingPersonAndMedicalSameProfile() throws FactoringConcatStreamMethodException {
+        try{
         // Combine person and medical record data into a single stream
         return Stream.concat(Stream.of(manageJsonData.personReaderJsonData()), Stream.of(manageJsonData.medicalRecordReaderJsonData()))
                 // Flatten the list of lists into a single stream
@@ -283,6 +309,9 @@ public class PersonService {
                 // Get the values (groups) from the map and convert them to a stream
                 .values()
                 .stream();
+    }catch(Exception e){
+            throw new PersonCustomException.FactoringConcatStreamMethodException(e);
+        }
     }
 
     // Method to add a new person
