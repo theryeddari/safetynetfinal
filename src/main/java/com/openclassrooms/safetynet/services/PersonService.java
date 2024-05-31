@@ -28,8 +28,12 @@ import java.util.stream.Stream;
 
 import static com.openclassrooms.safetynet.exceptions.PersonCustomException.*;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 @Service
 public class PersonService {
+    private static final Logger logger = LogManager.getLogger(PersonService.class);
     ManageJsonData manageJsonData;
     LocalDate currentDate = LocalDate.now();
     DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
@@ -41,329 +45,322 @@ public class PersonService {
 
     // Method to get persons and count of minor and major reply based on station number
     public FireStationReplyPersonDTO fireStationReply(String stationNumber) throws FireStationResponseException {
-        try{
-        // Read the list of fire stations from JSON data
-        List<FireStationModel> fireStationModelList = manageJsonData.fireStationReaderJsonData();
+        logger.info("Fetching fire station reply for station number: {}", stationNumber);
+        try {
+            List<FireStationModel> fireStationModelList = manageJsonData.fireStationReaderJsonData();
+            logger.debug("Existing fire stations: {}", fireStationModelList);
 
-        // Combine person and medical record data into a single stream, group by full name (first + last name)
-        List<Map<Boolean, SubFireStationReplyPerson>> necessaryData = Stream.concat(Stream.of(manageJsonData.personReaderJsonData()), Stream.of(manageJsonData.medicalRecordReaderJsonData()))
-                .flatMap(List::stream).collect(Collectors.groupingBy(model -> {
-                            if (model instanceof PersonModel personModel) {
-                                return personModel.getFirstName() + personModel.getLastName(); // Group by person's full name
-                            } else {
-                                MedicalRecordModel medicalRecordModel = ((MedicalRecordModel) model);
-                                return medicalRecordModel.getFirstName() + medicalRecordModel.getLastName(); // Group by medical record's full name
+            List<Map<Boolean, SubFireStationReplyPerson>> necessaryData = Stream.concat(Stream.of(manageJsonData.personReaderJsonData()), Stream.of(manageJsonData.medicalRecordReaderJsonData()))
+                    .flatMap(List::stream).collect(Collectors.groupingBy(model -> {
+                                if (model instanceof PersonModel personModel) {
+                                    return personModel.getFirstName() + personModel.getLastName();
+                                } else {
+                                    MedicalRecordModel medicalRecordModel = ((MedicalRecordModel) model);
+                                    return medicalRecordModel.getFirstName() + medicalRecordModel.getLastName();
+                                }
                             }
-                        }
-                ))
-                .values()
-                //filter group first time to be sure its contain one MedicalRecordModel
-                .stream().filter( grouped -> grouped.stream().anyMatch(aloneModel -> aloneModel instanceof MedicalRecordModel))
-                // Filter groups second time to be sure contain one Person and include only group associated with the given fire station number
-                .filter(grouped ->
-                        grouped.stream().anyMatch(model -> model instanceof PersonModel personModel && fireStationModelList.stream().filter(fireStation -> fireStation.getStation().equals(stationNumber)).toList().toString().contains(personModel.getAddress()))
-                )
-                // Map each group to a map containing whether the person is a minor and their details
-                .map(subDto -> {
-                    PersonModel personModel = subDto.stream().filter(PersonModel.class::isInstance).map(PersonModel.class::cast).findAny().orElseThrow();
-                    Boolean countMinorAdult = subDto.stream().filter(MedicalRecordModel.class::isInstance).map(MedicalRecordModel.class::cast).anyMatch(age -> LocalDate.parse(age.getBirthdate(), dateFormatter).until(currentDate).getYears() < 18);
-                    SubFireStationReplyPerson subFireStationReplyPerson = new SubFireStationReplyPerson(personModel.getFirstName(), personModel.getLastName(), personModel.getAddress(), personModel.getCity(), personModel.getZip(), personModel.getPhone());
-                    Map<Boolean, SubFireStationReplyPerson> booleanMap = new HashMap<>();
-                    booleanMap.put(countMinorAdult, subFireStationReplyPerson); // Map true if minor, false if adult
-                    return booleanMap;
-                }).toList();
+                    ))
+                    .values()
+                    .stream().filter(grouped -> grouped.stream().anyMatch(aloneModel -> aloneModel instanceof MedicalRecordModel))
+                    .filter(grouped ->
+                            grouped.stream().anyMatch(model -> model instanceof PersonModel personModel && fireStationModelList.stream().filter(fireStation -> fireStation.getStation().equals(stationNumber)).toList().toString().contains(personModel.getAddress()))
+                    )
+                    .map(subDto -> {
+                        PersonModel personModel = subDto.stream().filter(PersonModel.class::isInstance).map(PersonModel.class::cast).findAny().orElseThrow();
+                        Boolean countMinorAdult = subDto.stream().filter(MedicalRecordModel.class::isInstance).map(MedicalRecordModel.class::cast).anyMatch(age -> LocalDate.parse(age.getBirthdate(), dateFormatter).until(currentDate).getYears() < 18);
+                        SubFireStationReplyPerson subFireStationReplyPerson = new SubFireStationReplyPerson(personModel.getFirstName(), personModel.getLastName(), personModel.getAddress(), personModel.getCity(), personModel.getZip(), personModel.getPhone());
+                        Map<Boolean, SubFireStationReplyPerson> booleanMap = new HashMap<>();
+                        booleanMap.put(countMinorAdult, subFireStationReplyPerson);
+                        logger.debug("Mapped person: {}, is minor: {}", subFireStationReplyPerson, countMinorAdult);
+                        return booleanMap;
+                    }).toList();
 
-        // Flatten the list of maps to get a list of SubFireStationReplyPerson objects
-        List<SubFireStationReplyPerson> reply = necessaryData.stream().flatMap(model -> model.values().stream()).toList();
+            List<SubFireStationReplyPerson> reply = necessaryData.stream().flatMap(model -> model.values().stream()).toList();
+            long minor = necessaryData.stream().filter(booleanMinor -> booleanMinor.containsKey(true)).count();
+            long adult = necessaryData.stream().filter(booleanAdult -> booleanAdult.containsKey(false)).count();
 
-        // Count the number of minors and adults
-        long minor = necessaryData.stream().filter(booleanMinor -> booleanMinor.containsKey(true)).count();
-        long adult = necessaryData.stream().filter(booleanAdult -> booleanAdult.containsKey(false)).count();
-
-        // Create a response object containing the counts and the list of persons
-        SubFireStationModelReplyForCount subFireStationModelReplyForCount = new SubFireStationModelReplyForCount(String.valueOf(adult), String.valueOf(minor));
-        return new FireStationReplyPersonDTO(reply, subFireStationModelReplyForCount);
-    }catch(Exception e){
+            SubFireStationModelReplyForCount subFireStationModelReplyForCount = new SubFireStationModelReplyForCount(String.valueOf(adult), String.valueOf(minor));
+            logger.debug("Minor count: {}, Adult count: {}", minor, adult);
+            logger.info("Fire station reply fetched successfully.");
+            return new FireStationReplyPersonDTO(reply, subFireStationModelReplyForCount);
+        } catch (Exception e) {
+            logger.error("Error fetching fire station reply: ", e);
             throw new FireStationResponseException(e);
         }
     }
 
     // Method to get detail's children and their tutor's FullName reply based on station number
     public ChildAlertReplyPersonDTO childAlertReply(String address) throws ChildAlertResponseException {
-        try{
-        // Combine person and medical record data into a single stream, group by full name (first + last name)
-        List<Object> necessaryData = factoringConcatStreamForGroupingPersonAndMedicalSameProfile()
-                // Filter groups to include only those associated with the given address
-                .filter(listconcat ->
-                        listconcat.stream().filter(model -> model instanceof PersonModel).map(PersonModel.class::cast).anyMatch(person -> person.getAddress().equals(address))
-                )
-                // Flatten the list of lists into a single stream
-                .flatMap(List::stream)
-                // Filter to include only medical records
-                .filter(MedicalRecordModel.class::isInstance).map(MedicalRecordModel.class::cast)
-                // Map each medical record to either a child or adult response object based on age
-                .map(subDto -> {
-                            SubChildAlertReplyChildren replyChildren = LocalDate.parse(subDto.getBirthdate(), dateFormatter).until(currentDate).getYears() < 18
-                                    ? new SubChildAlertReplyChildren(subDto.getFirstName(), subDto.getLastName(), subDto.getBirthdate()) : null;
-                            SubChildAlertReplyAdultFamily replyAdultFamily = LocalDate.parse(subDto.getBirthdate(), dateFormatter).until(currentDate).getYears() > 18
-                                    ? new SubChildAlertReplyAdultFamily(subDto.getFirstName(), subDto.getLastName()) : null;
-                            if (replyChildren != null) {
-                                return replyChildren; // Return child response if age is less than 18
-                            } else
-                                return replyAdultFamily; // Return adult response if age is greater than 18
-                        }
-                ).toList();
+        logger.info("Fetching child alert reply for address: {}", address);
+        try {
+            List<Object> necessaryData = factoringConcatStreamForGroupingPersonAndMedicalSameProfile()
+                    .filter(listconcat ->
+                            listconcat.stream().filter(model -> model instanceof PersonModel).map(PersonModel.class::cast).anyMatch(person -> person.getAddress().equals(address))
+                    )
+                    .flatMap(List::stream)
+                    .filter(MedicalRecordModel.class::isInstance).map(MedicalRecordModel.class::cast)
+                    .map(subDto -> {
+                                SubChildAlertReplyChildren replyChildren = LocalDate.parse(subDto.getBirthdate(), dateFormatter).until(currentDate).getYears() < 18
+                                        ? new SubChildAlertReplyChildren(subDto.getFirstName(), subDto.getLastName(), subDto.getBirthdate()) : null;
+                                SubChildAlertReplyAdultFamily replyAdultFamily = LocalDate.parse(subDto.getBirthdate(), dateFormatter).until(currentDate).getYears() > 18
+                                        ? new SubChildAlertReplyAdultFamily(subDto.getFirstName(), subDto.getLastName()) : null;
+                                logger.debug("Processed medical record: {}, is child: {}", subDto, replyChildren != null);
+                                if (replyChildren != null) {
+                                    return replyChildren;
+                                } else
+                                    return replyAdultFamily;
+                            }
+                    ).toList();
 
-        // Separate the mapped responses into lists of children and adults
-        List<SubChildAlertReplyChildren> listChild = necessaryData.stream().filter(SubChildAlertReplyChildren.class::isInstance).map(SubChildAlertReplyChildren.class::cast).toList();
-        List<SubChildAlertReplyAdultFamily> listAdult = necessaryData.stream().filter(SubChildAlertReplyAdultFamily.class::isInstance).map(SubChildAlertReplyAdultFamily.class::cast).toList();
+            List<SubChildAlertReplyChildren> listChild = necessaryData.stream().filter(SubChildAlertReplyChildren.class::isInstance).map(SubChildAlertReplyChildren.class::cast).toList();
+            List<SubChildAlertReplyAdultFamily> listAdult = necessaryData.stream().filter(SubChildAlertReplyAdultFamily.class::isInstance).map(SubChildAlertReplyAdultFamily.class::cast).toList();
 
-        // Create and return the final response object containing lists of children and adults
-        return new ChildAlertReplyPersonDTO(listChild, listAdult);
-    }catch(Exception e){
-        throw new PersonCustomException.ChildAlertResponseException(e);
+            logger.debug("Children list: {}, Adults list: {}", listChild, listAdult);
+            logger.info("Child alert reply fetched successfully.");
+            return new ChildAlertReplyPersonDTO(listChild, listAdult);
+        } catch (Exception e) {
+            logger.error("Error fetching child alert reply: ", e);
+            throw new PersonCustomException.ChildAlertResponseException(e);
         }
     }
 
     // Method to get detail's children and their tutor's FullName reply based on station number
     public PhoneAlertReplyPersonDTO phoneAlert(String stationNumber) throws PhoneAlertResponseException {
-        try{
-        // Combine person and fire station data into a single stream, group by address
-        List<String> listPhone = Stream.concat(Stream.of(manageJsonData.personReaderJsonData()), Stream.of(manageJsonData.fireStationReaderJsonData()))
-                .flatMap(List::stream).collect(Collectors.groupingBy(model -> {
-                            if (model instanceof PersonModel personModel) {
-                                return personModel.getAddress(); // Group by person's address
-                            } else {
-                                FireStationModel fireStationModel = ((FireStationModel) model);
-                                return fireStationModel.getAddress(); // Group by fire station's address
+        logger.info("Fetching phone alert reply for station number: {}", stationNumber);
+        try {
+            List<String> listPhone = Stream.concat(Stream.of(manageJsonData.personReaderJsonData()), Stream.of(manageJsonData.fireStationReaderJsonData()))
+                    .flatMap(List::stream).collect(Collectors.groupingBy(model -> {
+                                if (model instanceof PersonModel personModel) {
+                                    return personModel.getAddress();
+                                } else {
+                                    FireStationModel fireStationModel = ((FireStationModel) model);
+                                    return fireStationModel.getAddress();
+                                }
                             }
-                        }
-                ))
-                .values().stream()
-                // Filter groups to include only those associated with the given fire station number
-                .filter(listConcat -> listConcat.stream().anyMatch(fireStation -> fireStation instanceof FireStationModel fireStationModel && fireStationModel.getStation().equals(stationNumber)))
-                // Flatten the list of lists into a single stream, filter to include only persons, and map to their phone numbers
-                .flatMap(phone -> phone.stream().filter(PersonModel.class::isInstance).map(PersonModel.class::cast).map(PersonModel::getPhone))
-                .toList();
+                    ))
+                    .values().stream()
+                    .filter(listConcat -> listConcat.stream().anyMatch(fireStation -> fireStation instanceof FireStationModel fireStationModel && fireStationModel.getStation().equals(stationNumber)))
+                    .flatMap(phone -> phone.stream().filter(PersonModel.class::isInstance).map(PersonModel.class::cast).map(PersonModel::getPhone))
+                    .toList();
 
-        // Create and return the final response object containing the list of phone numbers
-        return new PhoneAlertReplyPersonDTO(listPhone);
-    }catch(Exception e){
+            logger.debug("Phone list: {}", listPhone);
+            logger.info("Phone alert reply fetched successfully.");
+            return new PhoneAlertReplyPersonDTO(listPhone);
+        } catch (Exception e) {
+            logger.error("Error fetching phone alert reply: ", e);
             throw new PersonCustomException.PhoneAlertResponseException(e);
         }
     }
 
     // Method to get detail's family who's living there and the station linked reply based on address person
     public FireReplyPersonDTO fire(String address) throws FireResponseException {
-        try{
-        // Combine person and medical record data into a single stream, group by full name (first + last name)
-        List<SubFireReplyReplyInfoPerson> subFireReplyReplyInfoPersonList = factoringConcatStreamForGroupingPersonAndMedicalSameProfile()
-                // Filter groups to include only those associated with the given address
-                .filter(listConcat ->
-                        listConcat.stream().anyMatch(model -> model instanceof PersonModel personModel
-                                && personModel.getAddress().equals(address)))
-                // Map each group to a SubFireReplyReplyInfoPerson object containing relevant details
-                .map(subDto -> {
-                    PersonModel personModel = subDto.stream().filter(model -> model instanceof PersonModel).map(PersonModel.class::cast).findAny().orElseThrow();
-                    MedicalRecordModel medicalRecordModel = subDto.stream().filter(model -> model instanceof MedicalRecordModel).map(MedicalRecordModel.class::cast).findAny().orElseThrow();
-                    return new SubFireReplyReplyInfoPerson(personModel.getLastName(), personModel.getPhone(), medicalRecordModel.getBirthdate(), medicalRecordModel.getMedications(), medicalRecordModel.getAllergies());
-                })
-                .toList();
+        logger.info("Fetching fire reply for address: {}", address);
+        try {
+            List<SubFireReplyReplyInfoPerson> subFireReplyReplyInfoPersonList = factoringConcatStreamForGroupingPersonAndMedicalSameProfile()
+                    .filter(listConcat ->
+                            listConcat.stream().anyMatch(model -> model instanceof PersonModel personModel
+                                    && personModel.getAddress().equals(address)))
+                    .map(subDto -> {
+                        PersonModel personModel = subDto.stream().filter(model -> model instanceof PersonModel).map(PersonModel.class::cast).findAny().orElseThrow();
+                        MedicalRecordModel medicalRecordModel = subDto.stream().filter(model -> model instanceof MedicalRecordModel).map(MedicalRecordModel.class::cast).findAny().orElseThrow();
+                        logger.debug("Processed person: {}, medical record: {}", personModel, medicalRecordModel);
+                        return new SubFireReplyReplyInfoPerson(personModel.getLastName(), personModel.getPhone(), medicalRecordModel.getBirthdate(), medicalRecordModel.getMedications(), medicalRecordModel.getAllergies());
+                    })
+                    .toList();
 
-        // Find the station number associated with the given address
-        String stationNumber = manageJsonData.fireStationReaderJsonData().stream()
-                .filter(model -> model.getAddress().equals(address)).map(FireStationModel::getStation).findAny().orElse(null);
+            String stationNumber = manageJsonData.fireStationReaderJsonData().stream()
+                    .filter(model -> model.getAddress().equals(address)).map(FireStationModel::getStation).findAny().orElse(null);
 
-        // Create and return the final response object containing the list of persons and the station number
-        return new FireReplyPersonDTO(subFireReplyReplyInfoPersonList, stationNumber);
-    }catch(Exception e){
+            logger.debug("Station number for address {}: {}", address, stationNumber);
+            logger.info("Fire reply fetched successfully.");
+            return new FireReplyPersonDTO(subFireReplyReplyInfoPersonList, stationNumber);
+        } catch (Exception e) {
+            logger.error("Error fetching fire reply: ", e);
             throw new PersonCustomException.FireResponseException(e);
         }
     }
 
     // Method to get detail's person living and linked at the numbers station persons must be grouped by address, reply based on station number
     public StationsReplyPersonDTO floodStation(List<String> listStationNumber) throws FloodStationResponseException {
-        try{
-        // Read the list of fire stations from JSON data
-        List<FireStationModel> fireStationModelList = manageJsonData.fireStationReaderJsonData();
+        logger.info("Fetching flood station reply for station numbers: {}", listStationNumber);
+        try {
+            List<FireStationModel> fireStationModelList = manageJsonData.fireStationReaderJsonData();
+            logger.debug("Existing fire stations: {}", fireStationModelList);
 
-        // Combine person and medical record data into a single stream, group by address
-        List<SubStationsReplyInfoPersonByAddress> subStationsReplyInfoPersonByAddressList = factoringConcatStreamForGroupingPersonAndMedicalSameProfile()
-        //Combine each group of (person and MedicalRecord by full name) by common address between its different groups into new group
-                .collect(Collectors.groupingBy(
-                        group -> {
-                            for (Object model : group) {
-                                if (model instanceof PersonModel personModel) {
-                                    return personModel.getAddress(); // Group by person's address
+            List<SubStationsReplyInfoPersonByAddress> subStationsReplyInfoPersonByAddressList = factoringConcatStreamForGroupingPersonAndMedicalSameProfile()
+                    .collect(Collectors.groupingBy(
+                            group -> {
+                                for (Object model : group) {
+                                    if (model instanceof PersonModel personModel) {
+                                        return personModel.getAddress();
+                                    }
                                 }
+                                return "UnknownAddress";
                             }
-                            return "UnknownAddress"; // If no PersonModel is found
+                    ))
+                    .values().stream()
+                    .filter(groupOfGroups -> groupOfGroups.stream()
+                            .anyMatch(group -> group.stream()
+                                    .anyMatch(model -> model instanceof PersonModel personModel
+                                            && listStationNumber.stream().anyMatch(stationNumber -> fireStationModelList.stream().anyMatch(stationAddress -> stationAddress.getStation().equals(stationNumber)
+                                            && personModel.getAddress().equals(stationAddress.getAddress())
+                                    )))
+                            ))
+                    .map(groupOfGroups -> {
+                        List<SubStationsReplyInfoPerson> liste = new ArrayList<>();
+                        SubStationsReplyInfoAddress infoAddress = null;
+
+                        for (List<?> groupOfSameProfil : groupOfGroups) {
+                            PersonModel personModel = groupOfSameProfil.stream().filter(PersonModel.class::isInstance).map(PersonModel.class::cast).findAny().orElseThrow();
+                            MedicalRecordModel medicalRecordModel = groupOfSameProfil.stream().filter(MedicalRecordModel.class::isInstance).map(MedicalRecordModel.class::cast).findAny().orElseThrow();
+                            SubStationsReplyInfoPerson infoPerson = new SubStationsReplyInfoPerson(personModel.getLastName(), personModel.getPhone(), medicalRecordModel.getBirthdate(), medicalRecordModel.getMedications(), medicalRecordModel.getAllergies());
+                            infoAddress = new SubStationsReplyInfoAddress(personModel.getAddress(), personModel.getCity(), personModel.getZip());
+                            liste.add(infoPerson);
+                            logger.debug("Processed person: {}, medical record: {}", personModel, medicalRecordModel);
                         }
-                ))
-                .values().stream()
-                // Filter groups to include only those associated with the address of the fireStation which I obtain  with the given list of station numbers
-                .filter(groupOfGroups -> groupOfGroups.stream()
-                        .anyMatch(group -> group.stream()
-                                .anyMatch(model -> model instanceof PersonModel personModel
-                                        && listStationNumber.stream().anyMatch(stationNumber -> fireStationModelList.stream().anyMatch(stationAddress -> stationAddress.getStation().equals(stationNumber)
-                                        && personModel.getAddress().equals(stationAddress.getAddress())
-                                )))
-                        ))
-                // Map each groups Of group to a SubStationsReplyInfoPersonByAddress object containing relevant details
-                .map(groupOfGroups -> {
-                    // Initialize a list to hold SubStationsReplyInfoPerson objects
-                    List<SubStationsReplyInfoPerson> liste = new ArrayList<>();
 
-                    // Initialize a variable to hold address information
-                    SubStationsReplyInfoAddress infoAddress = null;
+                        logger.debug("Processed address: {}", infoAddress);
+                        return new SubStationsReplyInfoPersonByAddress(infoAddress, liste);
+                    })
+                    .toList();
 
-                    // Iterate over each group in the groupOfGroups
-                    for (List<?> groupOfSameProfil : groupOfGroups) {
-                        // Find any PersonModel object in the group, or throw an exception if not found
-                        PersonModel personModel = groupOfSameProfil.stream().filter(PersonModel.class::isInstance).map(PersonModel.class::cast).findAny().orElseThrow();
-
-                        // Find any MedicalRecordModel object in the group, or throw an exception if not found
-                        MedicalRecordModel medicalRecordModel = groupOfSameProfil.stream().filter(MedicalRecordModel.class::isInstance).map(MedicalRecordModel.class::cast).findAny().orElseThrow();
-
-                        // Create a SubStationsReplyInfoPerson object with the person's details and medical record information
-                        SubStationsReplyInfoPerson infoPerson = new SubStationsReplyInfoPerson(personModel.getLastName(), personModel.getPhone(), medicalRecordModel.getBirthdate(), medicalRecordModel.getMedications(), medicalRecordModel.getAllergies());
-
-                        // Create a SubStationsReplyInfoAddress object with the person's address information
-                        infoAddress = new SubStationsReplyInfoAddress(personModel.getAddress(), personModel.getCity(), personModel.getZip());
-
-                        // Add the SubStationsReplyInfoPerson object to the list
-                        liste.add(infoPerson);
-                    }
-
-                    // Return a new SubStationsReplyInfoPersonByAddress object containing the address information and the list of persons
-                    return new SubStationsReplyInfoPersonByAddress(infoAddress, liste);
-                })
-                .toList();
-
-        // Create and return the final response object containing the list of persons grouped by address
-        return new StationsReplyPersonDTO(subStationsReplyInfoPersonByAddressList);
-    }catch(Exception e){
+            logger.info("Flood station reply fetched successfully.");
+            return new StationsReplyPersonDTO(subStationsReplyInfoPersonByAddressList);
+        } catch (Exception e) {
+            logger.error("Error fetching flood station reply: ", e);
             throw new FloodStationResponseException(e);
         }
     }
+
     // Method to get detail's persons reply based on station firstName and LastName
     public PersonInfoReplyPersonDTO personInfo(String firstName, String lastName) throws PersonInfoResponseException {
+        logger.info("Fetching person info for {} {}", firstName, lastName);
         try {
-        // Combine person and medical record data into a single stream, group by full name (first + last name)
-        List<SubPersonInfoReplyPerson> subPersonInfoReplyPersonList = factoringConcatStreamForGroupingPersonAndMedicalSameProfile()
-                // Filter groups to include only those matching the given first name and last name
-                .filter(group -> group.stream().anyMatch(model -> model instanceof PersonModel personModel && personModel.getFirstName().equals(firstName) && personModel.getLastName().equals(lastName)))
-                // Map each group to a SubPersonInfoReplyPerson object containing relevant details
-                .map(subDto -> {
-                    // Find any PersonModel object in the group
-                    PersonModel personModel = subDto.stream().filter(model -> model instanceof PersonModel).map(PersonModel.class::cast).findAny().orElseThrow();
+            List<SubPersonInfoReplyPerson> subPersonInfoReplyPersonList = factoringConcatStreamForGroupingPersonAndMedicalSameProfile()
+                    .filter(group -> group.stream().anyMatch(model -> model instanceof PersonModel personModel && personModel.getFirstName().equals(firstName) && personModel.getLastName().equals(lastName)))
+                    .map(subDto -> {
+                        PersonModel personModel = subDto.stream().filter(model -> model instanceof PersonModel).map(PersonModel.class::cast).findAny().orElseThrow();
+                        MedicalRecordModel medicalRecordModel = subDto.stream().filter(model -> model instanceof MedicalRecordModel).map(MedicalRecordModel.class::cast).findAny().orElseThrow();
+                        logger.debug("Processed person: {}, medical record: {}", personModel, medicalRecordModel);
+                        return new SubPersonInfoReplyPerson(personModel.getLastName(), personModel.getAddress(), personModel.getCity(), personModel.getZip(), personModel.getEmail(), medicalRecordModel.getBirthdate(), medicalRecordModel.getMedications(), medicalRecordModel.getAllergies());
+                    })
+                    .toList();
 
-                    // Find any MedicalRecordModel object in the group
-                    MedicalRecordModel medicalRecordModel = subDto.stream().filter(model -> model instanceof MedicalRecordModel).map(MedicalRecordModel.class::cast).findAny().orElseThrow();
-
-                    // Create and return a SubPersonInfoReplyPerson object with the person's details and medical record information
-                    return new SubPersonInfoReplyPerson(personModel.getLastName(), personModel.getAddress(), personModel.getCity(), personModel.getZip(), personModel.getEmail(), medicalRecordModel.getBirthdate(), medicalRecordModel.getMedications(), medicalRecordModel.getAllergies());
-                })
-                .toList();
-
-        // Create and return the final response object containing the list of persons
-        return new PersonInfoReplyPersonDTO(subPersonInfoReplyPersonList);
-    }catch(Exception e){
+            logger.debug("Person info list: {}", subPersonInfoReplyPersonList);
+            logger.info("Person info fetched successfully.");
+            return new PersonInfoReplyPersonDTO(subPersonInfoReplyPersonList);
+        } catch (Exception e) {
+            logger.error("Error fetching person info: ", e);
             throw new PersonCustomException.PersonInfoResponseException(e);
         }
     }
+
     // Method to get mail's persons living in the city reply based on city
     public CommunityEmailReplyPersonDTO communityEmail(String city) throws CommunityEmailException {
-        try{
-        // Read the list of persons from JSON data and filter by the given city
-        List<String> listEmail = manageJsonData.personReaderJsonData().stream()
-                .filter(filteringCity -> filteringCity.getCity().equals(city)) // Filter persons by city
-                .map(PersonModel::getEmail) // Map each person to their email address
-                .toList(); // Collect the email addresses into a list
-        // Create and return the final response object containing the list of email addresses
-        return new CommunityEmailReplyPersonDTO(listEmail);
-    }catch(Exception e){
+        logger.info("Fetching community email for city: {}", city);
+        try {
+            List<String> listEmail = manageJsonData.personReaderJsonData().stream()
+                    .filter(filteringCity -> filteringCity.getCity().equals(city))
+                    .map(PersonModel::getEmail)
+                    .toList();
+
+            logger.debug("Email list: {}", listEmail);
+            logger.info("Community email fetched successfully.");
+            return new CommunityEmailReplyPersonDTO(listEmail);
+        } catch (Exception e) {
+            logger.error("Error fetching community email: ", e);
             throw new CommunityEmailException(e);
         }
     }
 
     // Private method same code in this class in order to combine and group Medical record and Person with the same profil in one group
     private Stream<? extends List<?>> factoringConcatStreamForGroupingPersonAndMedicalSameProfile() throws FactoringConcatStreamMethodException {
-        try{
-        // Combine person and medical record data into a single stream
-        return Stream.concat(Stream.of(manageJsonData.personReaderJsonData()), Stream.of(manageJsonData.medicalRecordReaderJsonData()))
-                // Flatten the list of lists into a single stream
-                .flatMap(List::stream)
-                // Group the combined data by full name (first + last name)
-                .collect(Collectors.groupingBy(
-                        model -> {
-                            if (model instanceof PersonModel personModel) {
-                                // If the model is a PersonModel, group by person's full name
-                                return personModel.getFirstName() + personModel.getLastName();
+        logger.debug("Combining and grouping person and medical record data");
+        try {
+            return Stream.concat(Stream.of(manageJsonData.personReaderJsonData()), Stream.of(manageJsonData.medicalRecordReaderJsonData()))
+                    .flatMap(List::stream)
+                    .collect(Collectors.groupingBy(
+                            model -> {
+                                if (model instanceof PersonModel personModel) {
+                                    return personModel.getFirstName() + personModel.getLastName();
+                                }
+                                MedicalRecordModel medicalRecordModel = ((MedicalRecordModel) model);
+                                return medicalRecordModel.getFirstName() + medicalRecordModel.getLastName();
                             }
-                            // If the model is a MedicalRecordModel, group by medical record's full name
-                            MedicalRecordModel medicalRecordModel = ((MedicalRecordModel) model);
-                            return medicalRecordModel.getFirstName() + medicalRecordModel.getLastName();
-                        }
-                ))
-                // Get the values (groups) from the map and convert them to a stream
-                .values()
-                .stream();
-    }catch(Exception e){
+                    ))
+                    .values()
+                    .stream();
+        } catch (Exception e) {
+            logger.error("Error combining and grouping data: ", e);
             throw new PersonCustomException.FactoringConcatStreamMethodException(e);
         }
     }
 
     // Method to add a new person
     public void addPerson(AddPersonDto person) throws AddPersonException {
+        logger.info("Adding new person: {} {}", person.getFirstName(), person.getLastName());
         try {
             List<PersonModel> listPersonsExisting = manageJsonData.personReaderJsonData();
-            // Check if the person already exists
+            logger.debug("Existing persons: {}", listPersonsExisting);
+
             if (listPersonsExisting.stream().noneMatch(personExist -> personExist.getLastName().equals(person.getLastName()) && personExist.getFirstName().equals(person.getFirstName()))) {
-                // Add the new person if it does not exist
                 listPersonsExisting.add(new PersonModel(person.getFirstName(), person.getLastName(), person.getAddress(), person.getCity(), person.getZip(), person.getPhone(), person.getEmail()));
-            }else{throw new AlreadyExistPersonException();}
-            // Write the updated list of medical records back to the JSON file
+                logger.info("New person added successfully.");
+            } else {
+                throw new AlreadyExistPersonException();
+            }
+
             manageJsonData.personWriterJsonData(listPersonsExisting);
         } catch (Exception e) {
+            logger.error("Error adding person: ", e);
             throw new AddPersonException(e);
         }
     }
+
     // Method to update an existing person
     public void updatePerson(UpdatePersonDto updatePerson) throws UpdatePersonException {
+        logger.info("Updating person: {} {}", updatePerson.getFirstName(), updatePerson.getLastName());
         try {
             List<PersonModel> listPersonsExisting = manageJsonData.personReaderJsonData();
-            // Get the reference to the filtered person object
-            Optional<PersonModel> wantedPersonUpdate = listPersonsExisting.stream().filter(person -> person.getFirstName().equals(updatePerson.getFirstName()) && person.getLastName().equals(updatePerson.getLastName())).findFirst();
-            if(wantedPersonUpdate.isEmpty()){throw new NotFoundPersonException();}
+            logger.debug("Existing persons: {}", listPersonsExisting);
 
-            // If there is a reference, access the object and modify its properties
+            Optional<PersonModel> wantedPersonUpdate = listPersonsExisting.stream().filter(person -> person.getFirstName().equals(updatePerson.getFirstName()) && person.getLastName().equals(updatePerson.getLastName())).findFirst();
+            if (wantedPersonUpdate.isEmpty()) {
+                throw new NotFoundPersonException();
+            }
+
             wantedPersonUpdate.ifPresent(modifyPerson -> {
                 modifyPerson.setCity(updatePerson.getCity());
                 modifyPerson.setPhone(updatePerson.getPhone());
                 modifyPerson.setEmail(updatePerson.getEmail());
                 modifyPerson.setAddress(updatePerson.getAddress());
                 modifyPerson.setZip(updatePerson.getZip());
+                logger.debug("Updated person details: {}", modifyPerson);
             });
-            // Write the updated list of person back to the JSON file
+
             manageJsonData.personWriterJsonData(listPersonsExisting);
+            logger.info("Person updated successfully.");
         } catch (Exception e) {
+            logger.error("Error updating person: ", e);
             throw new UpdatePersonException(e);
         }
     }
 
     // Method to delete an existing person
     public void deletePerson(DeletePersonDto deletePerson) throws DeletePersonException {
+        logger.info("Deleting person: {} {}", deletePerson.getFirstName(), deletePerson.getLastName());
         try {
             List<PersonModel> listPersonsExisting = manageJsonData.personReaderJsonData();
-            // Remove the person if it matches the given first name and last name
+            logger.debug("Existing persons: {}", listPersonsExisting);
+
             if (listPersonsExisting.removeIf(person -> person.getFirstName().equals(deletePerson.getFirstName()) && person.getLastName().equals(deletePerson.getLastName()))) {
-                // Write the updated list of medical records back to the JSON file
                 manageJsonData.personWriterJsonData(listPersonsExisting);
-            }else {
+                logger.info("Person deleted successfully.");
+            } else {
                 throw new NotFoundPersonException();
             }
-        } catch(Exception e){
+        } catch (Exception e) {
+            logger.error("Error deleting person: ", e);
             throw new DeletePersonException(e);
         }
     }
