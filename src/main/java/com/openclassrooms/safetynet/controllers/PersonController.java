@@ -90,7 +90,7 @@ public class PersonController {
 
     @DeleteMapping("/person")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deletePerson(DeletePersonDto deletePersonDto) throws DeletePersonException {
+    public void deletePerson(@RequestBody DeletePersonDto deletePersonDto) throws DeletePersonException {
         personService.deletePerson(deletePersonDto);
         logger.info("Requête DELETE bien excécuté avec les données suivante : {}", deletePersonDto);
     }

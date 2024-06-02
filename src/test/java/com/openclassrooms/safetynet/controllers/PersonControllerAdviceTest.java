@@ -51,5 +51,13 @@ class PersonControllerAdviceTest {
         ResponseEntity<String> responseEntity = advice.handleDeletePersonException(new DeletePersonException(notFoundPersonException));
         assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
     }
+    //test only one getMethod of PersonService because implementation is identical for all gets and risk close to zero for an exception
+    @Test
+    void handleAnythingGetMethodException(){
+        IOException ioException = new IOException();
+        PhoneAlertResponseException phoneAlertResponseException = new PhoneAlertResponseException(ioException);
+        ResponseEntity<String> responseEntity = advice.handleAnythingGetMethodException(new PhoneAlertResponseException(phoneAlertResponseException));
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+    }
 
 }

@@ -17,7 +17,7 @@ public class PersonControllerAdvice {
 
     @ExceptionHandler(AddPersonException.class)
     public ResponseEntity<String> handleAddPersonException(AddPersonException ex) {
-        String errorText = "Error occurred while adding a medical record";
+        String errorText = "Error occurred while adding a person";
         logger.error("{} : {}", errorText, ex.getMessage());
         if(ex.getCause() instanceof PersonCustomException) {
             return new ResponseEntity<>(errorText, HttpStatus.CONFLICT);
@@ -27,7 +27,7 @@ public class PersonControllerAdvice {
 
     @ExceptionHandler(UpdatePersonException.class)
     public ResponseEntity<String> handleUpdatePersonException(UpdatePersonException ex) {
-        String errorText = "Error occurred while updating a fire station";
+        String errorText = "Error occurred while updating a person";
         logger.error("{} : {}", errorText, ex.getMessage());
         if(ex.getCause() instanceof PersonCustomException) {
             return new ResponseEntity<>(errorText, HttpStatus.NOT_FOUND);
@@ -37,11 +37,18 @@ public class PersonControllerAdvice {
 
     @ExceptionHandler(DeletePersonException.class)
     public ResponseEntity<String> handleDeletePersonException(DeletePersonException ex) {
-        String errorText = "Error occurred while deleting a medical record";
+        String errorText = "Error occurred while deleting a person";
         logger.error("{} : {}", errorText, ex.getMessage());
-        if(ex.getCause() instanceof DeletePersonException) {
+        if(ex.getCause() instanceof PersonCustomException) {
             return new ResponseEntity<>(errorText, HttpStatus.NOT_FOUND);
         }
+        return new ResponseEntity<>(errorText, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    //all other Exception in PersonService (Get) because Advice preferred to choose a child exception (more precise than the parent)
+    @ExceptionHandler(PersonCustomException.class)
+    public ResponseEntity<String> handleAnythingGetMethodException(PersonCustomException ex) {
+        String errorText = "Error occurred while during processing of a person";
+        logger.error("{} : {}", errorText, ex.getMessage());
         return new ResponseEntity<>(errorText, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
