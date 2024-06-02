@@ -61,9 +61,9 @@ public class PersonController {
     }
 
     @GetMapping("/personInfo")
-    public PersonInfoReplyPersonDTO getPersonInfoByNames(@RequestParam("firstName") String firstName, @RequestParam("lastName") String lastName) throws PersonInfoResponseException {
-        PersonInfoReplyPersonDTO result = personService.personInfo(firstName, lastName);
-        logger.info("Requête GET recue avec la donnée : {} {} \n Réponse du GET avec les données : {}", firstName, lastName, result);
+    public PersonInfoReplyPersonDTO getPersonInfoByNames(@RequestParam("lastName") String lastName) throws PersonInfoResponseException {
+        PersonInfoReplyPersonDTO result = personService.personInfo(lastName);
+        logger.info("Requête GET recue avec la donnée : {} \n Réponse du GET avec les données : {}", lastName, result);
         return result;
     }
 

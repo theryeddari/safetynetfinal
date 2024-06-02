@@ -99,15 +99,14 @@ public class PersonControllerTest {
 
     @Test
     public void testGetPersonInfoByNames() throws Exception {
-        when(personService.personInfo("John", "Doe")).thenReturn(new PersonInfoReplyPersonDTO());
+        when(personService.personInfo( "Doe")).thenReturn(new PersonInfoReplyPersonDTO());
 
         mockMvc.perform(get("/personInfo")
-                        .param("firstName", "John")
                         .param("lastName", "Doe"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
-        verify(personService).personInfo("John", "Doe");
+        verify(personService).personInfo("Doe");
     }
 
     @Test
