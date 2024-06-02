@@ -27,7 +27,7 @@ public class MedicalRecordControllerAdvice {
 
     @ExceptionHandler(UpdateMedicalRecordException.class)
     public ResponseEntity<String> handleUpdateMedicalRecordException(UpdateMedicalRecordException ex) {
-        String errorText = "Error occurred while updating a fire station";
+        String errorText = "Error occurred while updating a medical record";
         logger.error("{} : {}", errorText, ex.getMessage());
         if(ex.getCause() instanceof MedicalRecordCustomException) {
             return new ResponseEntity<>(errorText, HttpStatus.NOT_FOUND);
