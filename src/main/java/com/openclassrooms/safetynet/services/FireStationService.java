@@ -90,29 +90,23 @@ public class FireStationService {
         try {
             List<FireStationModel> listFireStationExisting = manageJsonData.fireStationReaderJsonData();
             logger.debug("Existing fire stations: {}", listFireStationExisting);
-
-            if ((deleteFireStation.getStation() == null || deleteFireStation.getStation().isBlank()) &&
-                    (deleteFireStation.getAddress() == null || deleteFireStation.getAddress().isBlank())) {
-                throw new MissingFireStationArgument();
-            } else {
                 // Remove all station fire with this address
                 if ((deleteFireStation.getStation() == null || deleteFireStation.getStation().isBlank()) &&
-                    listFireStationExisting.removeIf(fireStation -> fireStation.getAddress().equals(deleteFireStation.getAddress()))) {
+                        listFireStationExisting.removeIf(fireStation -> fireStation.getAddress().equals(deleteFireStation.getAddress()))) {
                     logger.info("Fire stations with address {} deleted successfully.", deleteFireStation.getAddress());
                 }
                 // Remove all station fire with this number station
                 else if ((deleteFireStation.getAddress() == null || deleteFireStation.getAddress().isBlank()) &&
-                         listFireStationExisting.removeIf(fireStation -> fireStation.getStation().equals(deleteFireStation.getStation()))) {
+                        listFireStationExisting.removeIf(fireStation -> fireStation.getStation().equals(deleteFireStation.getStation()))) {
                     logger.info("Fire stations with station number {} deleted successfully.", deleteFireStation.getStation());
                 }
                 // Remove only fire station with this number station and address
                 else if (listFireStationExisting.removeIf(fireStation ->
-                    fireStation.getAddress().equals(deleteFireStation.getAddress()) &&
-                    fireStation.getStation().equals(deleteFireStation.getStation()))) {
+                        fireStation.getAddress().equals(deleteFireStation.getAddress()) &&
+                                fireStation.getStation().equals(deleteFireStation.getStation()))) {
                     logger.info("Fire station with address {} and station number {} deleted successfully.", deleteFireStation.getAddress(), deleteFireStation.getStation());
                 } else {
                     throw new NotFoundFireStationException();
-                }
             }
             // Write the updated list of fire station back to the JSON file
             manageJsonData.fireStationWriterJsonData(listFireStationExisting);
@@ -121,4 +115,5 @@ public class FireStationService {
             throw new DeleteFireStationException(e);
         }
     }
+
 }

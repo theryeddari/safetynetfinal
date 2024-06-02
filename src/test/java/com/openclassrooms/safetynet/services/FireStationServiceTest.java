@@ -191,13 +191,5 @@ class FireStationServiceTest {
         Throwable exception = assertThrows(DeleteFireStationException.class, () -> fireStationService.deleteFireStation(deleteFireStation));
         assertEquals(exception.getCause().getClass(), NotFoundFireStationException.class);
     }
-    @Test
-    void deleteFireStationWithNoneArgumentFilledException() throws FireStationWriterException {
-        //indicates not to launch the write method on the file
-        doNothing().when(manageJsonDataSpy).fireStationWriterJsonData(anyList());
-        //fire station to delete and not exist to start exception
-        DeleteFireStationDto deleteFireStation = new DeleteFireStationDto("","");
-        Throwable exception = assertThrows(DeleteFireStationException.class, () -> fireStationService.deleteFireStation(deleteFireStation));
-        assertEquals(exception.getCause().getClass(), MissingFireStationArgument.class);
-    }
+
 }
