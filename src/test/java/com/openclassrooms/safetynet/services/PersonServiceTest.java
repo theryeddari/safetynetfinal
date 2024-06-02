@@ -149,8 +149,8 @@ class PersonServiceTest {
     @Test
     void personInfoTest() throws PersonInfoResponseException {
         PersonInfoReplyPersonDTO reply = personService.personInfo("Boyd");
-        List<SubPersonInfoReplyPerson> personInfoExcepted =  List.of( new SubPersonInfoReplyPerson("Boyd","1509 Culver St","Culver","97451","jaboyd@email.com","03/06/1984",List.of("aznol:350mg, hydrapermazol:100mg"), List.of("nillacilan")));
-        Assertions.assertTrue(reply.getListPerson().toString().contains(personInfoExcepted.toString()));
+        SubPersonInfoReplyPerson personInfoExcepted = new SubPersonInfoReplyPerson("Boyd","1509 Culver St","Culver","97451","jaboyd@email.com","03/06/1984",List.of("aznol:350mg, hydrapermazol:100mg"), List.of("nillacilan"));
+        Assertions.assertTrue(reply.getListPerson().stream().anyMatch(person -> person.toString().equals(personInfoExcepted.toString())));
     }
 
     @Test
