@@ -3,7 +3,6 @@ package com.openclassrooms.safetynet.controllers;
 import com.openclassrooms.safetynet.dto.requests.AddMedicalRecordDto;
 import com.openclassrooms.safetynet.dto.requests.DeleteMedicalRecordDto;
 import com.openclassrooms.safetynet.dto.requests.UpdateMedicalRecordDto;
-import com.openclassrooms.safetynet.services.FireStationService;
 import com.openclassrooms.safetynet.services.MedicalRecordService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,7 +14,7 @@ import static com.openclassrooms.safetynet.exceptions.MedicalRecordCustomExcepti
 @RestController
 public class MedicalRecordController {
 
-    private static final Logger logger = LogManager.getLogger(FireStationService.class);
+    private static final Logger logger = LogManager.getLogger(MedicalRecordService.class);
 
     private final MedicalRecordService medicalRecordService;
 
