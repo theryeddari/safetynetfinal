@@ -148,7 +148,7 @@ class PersonServiceTest {
 
     @Test
     void personInfoTest() throws PersonInfoResponseException {
-        PersonInfoReplyPersonDTO reply = personService.personInfo("John", "Boyd");
+        PersonInfoReplyPersonDTO reply = personService.personInfo("Boyd");
         List<SubPersonInfoReplyPerson> personInfoExcepted =  List.of( new SubPersonInfoReplyPerson("Boyd","1509 Culver St","Culver","97451","jaboyd@email.com","03/06/1984",List.of("aznol:350mg, hydrapermazol:100mg"), List.of("nillacilan")));
         Assertions.assertTrue(reply.getListPerson().toString().contains(personInfoExcepted.toString()));
     }
@@ -161,7 +161,7 @@ class PersonServiceTest {
         PersonInfoResponseException exceptionChain = new PersonInfoResponseException(factoringConcatStreamMethodException);
         when(manageJsonDataSpy.personReaderJsonData()).thenThrow(RuntimeException.class);
 
-        Throwable exception = assertThrows(PersonInfoResponseException.class, () -> personService.personInfo("Paul","Afond"));
+        Throwable exception = assertThrows(PersonInfoResponseException.class, () -> personService.personInfo("Afond"));
         assertEquals(FactoringConcatStreamMethodException.class, exception.getCause().getClass());
         assertEquals(exceptionChain.getMessage(), exception.getMessage());
     }
@@ -194,7 +194,7 @@ class PersonServiceTest {
         when(manageJsonDataSpy.medicalRecordReaderJsonData()).thenReturn(listMedicalRecordSpy);
 
         //use another method who use this one to check good execution because this method is private
-        PersonInfoReplyPersonDTO returnExcepted = personService.personInfo("thery","eddari");
+        PersonInfoReplyPersonDTO returnExcepted = personService.personInfo("eddari");
         SubPersonInfoReplyPerson infoExcepted = new SubPersonInfoReplyPerson("eddari","","","","","",List.of(),List.of()) ;
         Assertions.assertEquals(returnExcepted.getListPerson().getFirst().toString(),infoExcepted.toString());
     }
@@ -207,7 +207,7 @@ class PersonServiceTest {
         PersonInfoResponseException exceptionChain = new PersonInfoResponseException(factoringConcatStreamMethodException);
         when(manageJsonDataSpy.personReaderJsonData()).thenThrow(runtimeException);
 
-        Throwable exception = assertThrows(PersonInfoResponseException.class, () -> personService.personInfo("Paul","Afond"));
+        Throwable exception = assertThrows(PersonInfoResponseException.class, () -> personService.personInfo("Afond"));
         assertEquals(FactoringConcatStreamMethodException.class, exception.getCause().getClass());
         assertEquals(exceptionChain.getMessage(), exception.getMessage());
     }

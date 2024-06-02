@@ -233,11 +233,11 @@ public class PersonService {
     }
 
     // Method to get detail's persons reply based on station firstName and LastName
-    public PersonInfoReplyPersonDTO personInfo(String firstName, String lastName) throws PersonInfoResponseException {
-        logger.info("Fetching person info for {} {}", firstName, lastName);
+    public PersonInfoReplyPersonDTO personInfo(String lastName) throws PersonInfoResponseException {
+        logger.info("Fetching person info for {}", lastName);
         try {
             List<SubPersonInfoReplyPerson> subPersonInfoReplyPersonList = factoringConcatStreamForGroupingPersonAndMedicalSameProfile()
-                    .filter(group -> group.stream().anyMatch(model -> model instanceof PersonModel personModel && personModel.getFirstName().equals(firstName) && personModel.getLastName().equals(lastName)))
+                    .filter(group -> group.stream().anyMatch(model -> model instanceof PersonModel personModel && personModel.getLastName().equals(lastName)))
                     .map(subDto -> {
                         PersonModel personModel = subDto.stream().filter(model -> model instanceof PersonModel).map(PersonModel.class::cast).findAny().orElseThrow();
                         MedicalRecordModel medicalRecordModel = subDto.stream().filter(model -> model instanceof MedicalRecordModel).map(MedicalRecordModel.class::cast).findAny().orElseThrow();
