@@ -44,11 +44,6 @@ public class PersonCustomException extends Exception {
         }
     }
 
-    public static class NoMatchesFoundException extends PersonCustomException {
-        public NoMatchesFoundException() {
-            super("No match found in the database, please check your entry or create it there");
-        }
-    }
 
     public static class FireStationResponseException extends PersonCustomException {
         public FireStationResponseException(Exception cause) {
