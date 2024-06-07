@@ -6,15 +6,19 @@ import lombok.ToString;
 
 import java.util.List;
 
+/**
+ * DTO for returning email addresses of all residents in a specified city.
+ */
 @Getter
 @AllArgsConstructor
 @ToString
 public class CommunityEmailReplyPersonDTO {
     /**
-     * DTO for returning email addresses of all residents in a specified city.
+     * Constructor for Jackson serialization.
      */
-    public CommunityEmailReplyPersonDTO(){
-        //constructor for jackson serialisation
+    public CommunityEmailReplyPersonDTO() {
+        // Constructor for Jackson serialization
     }
-    List<String> mail;
+
+    private List<String> mail;
 }

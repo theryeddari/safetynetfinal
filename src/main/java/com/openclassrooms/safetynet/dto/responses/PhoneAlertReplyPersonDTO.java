@@ -3,18 +3,23 @@ package com.openclassrooms.safetynet.dto.responses;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
+
 import java.util.List;
 
+/**
+ * DTO for returning a list of phone numbers of residents covered by a specific fire station,
+ * to facilitate emergency text message alerts.
+ */
 @Getter
 @AllArgsConstructor
 @ToString
 public class PhoneAlertReplyPersonDTO {
     /**
-     * DTO for returning a list of phone numbers of residents covered by a specific fire station,
-     * to facilitate emergency text message alerts.
+     * Constructor for Jackson serialization.
      */
-    public PhoneAlertReplyPersonDTO(){
-        //constructor for jackson serialisation
+    public PhoneAlertReplyPersonDTO() {
+        // Constructor for Jackson serialization
     }
-    List<String> phone;
+
+    private List<String> phone;
 }

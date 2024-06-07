@@ -6,13 +6,20 @@ import lombok.ToString;
 
 import java.util.List;
 
+/**
+ * Represents information about a specific address and the persons associated with it.
+ */
 @Getter
 @AllArgsConstructor
 @ToString
 public class SubStationsReplyInfoPersonByAddress {
-    public SubStationsReplyInfoPersonByAddress(){
-        //constructor for jackson serialisation
+    /**
+     * Constructor for Jackson serialization.
+     */
+    public SubStationsReplyInfoPersonByAddress() {
+        // Constructor for Jackson serialization
     }
-    SubStationsReplyInfoAddress infoAddress;
-    List<SubStationsReplyInfoPerson> infoPerson;
+
+    private SubStationsReplyInfoAddress infoAddress;
+    private List<SubStationsReplyInfoPerson> infoPerson;
 }

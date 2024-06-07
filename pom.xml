@@ -34,46 +34,41 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.jacoco</groupId>
-			<artifactId>jacoco-maven-plugin</artifactId>
-			<version>0.8.11</version>
-		</dependency>
-
-		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-log4j2</artifactId>
 		</dependency>
 	</dependencies>
 
 	<build>
+
 		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-			<!-- Plugin JaCoCo pour la collecte de la couverture de code -->
+			<!-- Plugin JaCoCo for coverage code -->
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.8.11</version>
-				<!--config exclude class not interesting to test-->
+				<!--config-->
 				<configuration>
+					<!--config exclude class not interesting to test-->
 					<excludes>
-						<exclude>com/openclassrooms/safetynet/SafetyApplication.java</exclude>
+						<exclude>com/openclassrooms/safetynet/*SafetyApplication.*</exclude>
 						<exclude>com/openclassrooms/safetynet/dto/**</exclude>
 						<exclude>com/openclassrooms/safetynet/annotations/**</exclude>
 						<exclude>com/openclassrooms/safetynet/exceptions/**</exclude>
 						<exclude>com/openclassrooms/safetynet/models/**</exclude>
 					</excludes>
+
 				</configuration>
+
 				<executions>
 					<execution>
+						<id>pre-agent-test</id>
 						<goals>
 							<goal>prepare-agent</goal>
 						</goals>
 					</execution>
 					<execution>
-						<id>report</id>
+						<id>rapport-test</id>
 						<phase>test</phase>
 						<goals>
 							<goal>report</goal>
@@ -81,14 +76,18 @@
 					</execution>
 				</executions>
 			</plugin>
-
-			<!-- Plugin for generate project's rapports -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-project-info-reports-plugin</artifactId>
-				<version>3.5.0</version> <!-- Spécifiez la version appropriée ici -->
-			</plugin>
 		</plugins>
 	</build>
 
+
+	<reporting>
+		<plugins>
+			<!-- Plugin to generate rapport into project's site -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-report-plugin</artifactId>
+				<version>3.2.2</version>
+			</plugin>
+		</plugins>
+	</reporting>
 </project>

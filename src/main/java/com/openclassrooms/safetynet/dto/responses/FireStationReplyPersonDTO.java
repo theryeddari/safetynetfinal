@@ -8,17 +8,21 @@ import lombok.ToString;
 
 import java.util.List;
 
+/**
+ * DTO for returning a list of residents covered by a specific fire station,
+ * including their personal details and a count of adults and children.
+ */
 @Getter
 @AllArgsConstructor
 @ToString
 public class FireStationReplyPersonDTO {
     /**
-     * DTO for returning a list of residents covered by a specific fire station,
-     * including their personal details and a count of adults and children.
+     * Constructor for Jackson serialization.
      */
     public FireStationReplyPersonDTO() {
-        //constructor for jackson serialisation
+        // Constructor for Jackson serialization
     }
-    List<SubFireStationReplyPerson> persons;
-    SubFireStationModelReplyForCount countPerson;
+
+    private List<SubFireStationReplyPerson> persons;
+    private SubFireStationModelReplyForCount countPerson;
 }

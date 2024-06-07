@@ -14,18 +14,29 @@ import static com.openclassrooms.safetynet.exceptions.MedicalRecordCustomExcepti
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
+/**
+ *  class which manages all operations related to a person's medical record information (updating, deleting and adding)
+ */
 @Service
 public class MedicalRecordService {
     private static final Logger logger = LogManager.getLogger(MedicalRecordService.class);
     private final ManageJsonData manageJsonData;
 
-    // Constructor to inject ManageJsonData dependency
+    /**
+     * Constructor to inject ManageJsonData dependency.
+     *
+     * @param manageJsonData the manageJsonData to be injected
+     */
     public MedicalRecordService(ManageJsonData manageJsonData) {
         this.manageJsonData = manageJsonData;
     }
 
-    // Method to add a new medical record
+    /**
+     * Method to add a new medical record.
+     *
+     * @param newMedicalRecord the medical record to add
+     * @throws AddMedicalRecordException if an error occurs during the addition
+     */
     public void addMedicalRecord(AddMedicalRecordDto newMedicalRecord) throws AddMedicalRecordException {
         logger.info("Adding new medical record for {} {}", newMedicalRecord.getFirstName(), newMedicalRecord.getLastName());
         try {
@@ -57,7 +68,12 @@ public class MedicalRecordService {
         }
     }
 
-    // Method to update an existing medical record
+    /**
+     * Method to update an existing medical record.
+     *
+     * @param updateMedicalRecord the medical record to update
+     * @throws UpdateMedicalRecordException if an error occurs during the update
+     */
     public void updateMedicalRecord(UpdateMedicalRecordDto updateMedicalRecord) throws UpdateMedicalRecordException {
         logger.info("Updating medical record for {} {}", updateMedicalRecord.getFirstName(), updateMedicalRecord.getLastName());
         try {
@@ -90,7 +106,12 @@ public class MedicalRecordService {
         }
     }
 
-    // Method to delete an existing medical record
+    /**
+     * Method to delete an existing medical record.
+     *
+     * @param deleteMedicalRecord the medical record to delete
+     * @throws DeleteMedicalRecordException if an error occurs during the deletion
+     */
     public void deleteMedicalRecord(DeleteMedicalRecordDto deleteMedicalRecord) throws DeleteMedicalRecordException {
         logger.info("Deleting medical record for {} {}", deleteMedicalRecord.getFirstName(), deleteMedicalRecord.getLastName());
         try {
@@ -114,4 +135,5 @@ public class MedicalRecordService {
         }
     }
 }
+
 

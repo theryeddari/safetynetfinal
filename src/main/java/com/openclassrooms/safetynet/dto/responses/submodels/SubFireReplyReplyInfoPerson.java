@@ -5,17 +5,25 @@ import lombok.Getter;
 import lombok.ToString;
 
 import java.util.List;
+
+/**
+ * Represents personal information of an individual in a fire alert reply,
+ * including contact details, birthdate, medications, and allergies.
+ */
 @Getter
 @AllArgsConstructor
 @ToString
 public class SubFireReplyReplyInfoPerson {
-    public SubFireReplyReplyInfoPerson(){
-        //constructor for jackson serialisation
+    /**
+     * Constructor for Jackson serialization.
+     */
+    public SubFireReplyReplyInfoPerson() {
+        // Constructor for Jackson serialization
     }
-    String lastName;
-    String phone;
-    String birthdate;
-    List<String> medications;
-    List<String> allergies;
 
+    private String lastName;
+    private String phone;
+    private String birthdate;
+    private List<String> medications;
+    private List<String> allergies;
 }

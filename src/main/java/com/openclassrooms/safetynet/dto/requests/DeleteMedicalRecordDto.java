@@ -4,7 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
-
+/**
+ * DTO to send the data of the medical record to be deleted
+ */
 @Getter
 @AllArgsConstructor
 @ToString

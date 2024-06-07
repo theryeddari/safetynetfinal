@@ -4,7 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
-
+/**
+ * DTO to send the data to be updated concerning a FireStation.
+ */
 @Getter
 @AllArgsConstructor
 @ToString

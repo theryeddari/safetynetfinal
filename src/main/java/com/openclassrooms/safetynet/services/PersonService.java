@@ -38,12 +38,22 @@ public class PersonService {
     LocalDate currentDate = LocalDate.now();
     DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
 
-    // Constructor to inject ManageJsonData dependency
+    /**
+     * Constructor to inject ManageJsonData dependency.
+     *
+     * @param manageJsonData the manageJsonData to be injected
+     */
     public PersonService(ManageJsonData manageJsonData) {
         this.manageJsonData = manageJsonData;
     }
 
-    // Method to get persons and count of minor and major reply based on station number
+    /**
+     * Method to get persons and count of minor and major based on station number.
+     *
+     * @param stationNumber the station number to query
+     * @return FireStationReplyPersonDTO containing the information
+     * @throws FireStationResponseException if an error occurs during the process
+     */
     public FireStationReplyPersonDTO fireStationReply(String stationNumber) throws FireStationResponseException {
         logger.info("Fetching fire station reply for station number: {}", stationNumber);
         try {
@@ -89,7 +99,13 @@ public class PersonService {
         }
     }
 
-    // Method to get detail's children and their tutor's FullName reply based on station number
+    /**
+     * Method to get details of children and their tutors' full names based on address.
+     *
+     * @param address the address to query
+     * @return ChildAlertReplyPersonDTO containing the information
+     * @throws ChildAlertResponseException if an error occurs during the process
+     */
     public ChildAlertReplyPersonDTO childAlertReply(String address) throws ChildAlertResponseException {
         logger.info("Fetching child alert reply for address: {}", address);
         try {
@@ -124,7 +140,13 @@ public class PersonService {
         }
     }
 
-    // Method to get detail's children and their tutor's FullName reply based on station number
+    /**
+     * Method to get phone numbers based on station number.
+     *
+     * @param stationNumber the station number to query
+     * @return PhoneAlertReplyPersonDTO containing the phone numbers
+     * @throws PhoneAlertResponseException if an error occurs during the process
+     */
     public PhoneAlertReplyPersonDTO phoneAlert(String stationNumber) throws PhoneAlertResponseException {
         logger.info("Fetching phone alert reply for station number: {}", stationNumber);
         try {
@@ -152,7 +174,13 @@ public class PersonService {
         }
     }
 
-    // Method to get detail's family who's living there and the station linked reply based on address person
+    /**
+     * Method to get details of persons and the fire station linked to their address.
+     *
+     * @param address the address to query
+     * @return FireReplyPersonDTO containing the information
+     * @throws FireResponseException if an error occurs during the process
+     */
     public FireReplyPersonDTO fire(String address) throws FireResponseException {
         logger.info("Fetching fire reply for address: {}", address);
         try {
@@ -180,7 +208,13 @@ public class PersonService {
         }
     }
 
-    // Method to get detail's person living and linked at the numbers station persons must be grouped by address, reply based on station number
+    /**
+     * Method to get details of persons grouped by address, based on station numbers.
+     *
+     * @param listStationNumber the list of station numbers to query
+     * @return StationsReplyPersonDTO containing the information
+     * @throws FloodStationResponseException if an error occurs during the process
+     */
     public StationsReplyPersonDTO floodStation(List<String> listStationNumber) throws FloodStationResponseException {
         logger.info("Fetching flood station reply for station numbers: {}", listStationNumber);
         try {
@@ -232,7 +266,13 @@ public class PersonService {
         }
     }
 
-    // Method to get detail's persons reply based on station firstName and LastName
+    /**
+     * Method to get detailed information of persons based on last name.
+     *
+     * @param lastName the last name to query
+     * @return PersonInfoReplyPersonDTO containing the information
+     * @throws PersonInfoResponseException if an error occurs during the process
+     */
     public PersonInfoReplyPersonDTO personInfo(String lastName) throws PersonInfoResponseException {
         logger.info("Fetching person info for {}", lastName);
         try {
@@ -255,7 +295,13 @@ public class PersonService {
         }
     }
 
-    // Method to get mail's persons living in the city reply based on city
+    /**
+     * Method to get email addresses of persons living in a specific city.
+     *
+     * @param city the city to query
+     * @return CommunityEmailReplyPersonDTO containing the email addresses
+     * @throws CommunityEmailException if an error occurs during the process
+     */
     public CommunityEmailReplyPersonDTO communityEmail(String city) throws CommunityEmailException {
         logger.info("Fetching community email for city: {}", city);
         try {
@@ -273,7 +319,12 @@ public class PersonService {
         }
     }
 
-    // Private method same code in this class in order to combine and group Medical record and Person with the same profil in one group
+    /**
+     * Private method to combine and group MedicalRecord and Person with the same profile into one group.
+     *
+     * @return Stream of grouped lists
+     * @throws FactoringConcatStreamMethodException if an error occurs during the process
+     */
     private Stream<? extends List<?>> factoringConcatStreamForGroupingPersonAndMedicalSameProfile() throws FactoringConcatStreamMethodException {
         logger.debug("Combining and grouping person and medical record data");
         try {
@@ -296,7 +347,12 @@ public class PersonService {
         }
     }
 
-    // Method to add a new person
+    /**
+     * Method to add a new person.
+     *
+     * @param person the person to add
+     * @throws AddPersonException if an error occurs during the addition
+     */
     public void addPerson(AddPersonDto person) throws AddPersonException {
         logger.info("Adding new person: {} {}", person.getFirstName(), person.getLastName());
         try {
@@ -317,7 +373,12 @@ public class PersonService {
         }
     }
 
-    // Method to update an existing person
+    /**
+     * Method to update an existing person.
+     *
+     * @param updatePerson the person to update
+     * @throws UpdatePersonException if an error occurs during the update
+     */
     public void updatePerson(UpdatePersonDto updatePerson) throws UpdatePersonException {
         logger.info("Updating person: {} {}", updatePerson.getFirstName(), updatePerson.getLastName());
         try {
@@ -346,7 +407,12 @@ public class PersonService {
         }
     }
 
-    // Method to delete an existing person
+    /**
+     * Method to delete an existing person.
+     *
+     * @param deletePerson the person to delete
+     * @throws DeletePersonException if an error occurs during the deletion
+     */
     public void deletePerson(DeletePersonDto deletePerson) throws DeletePersonException {
         logger.info("Deleting person: {} {}", deletePerson.getFirstName(), deletePerson.getLastName());
         try {

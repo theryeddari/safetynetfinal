@@ -6,19 +6,26 @@ import lombok.ToString;
 
 import java.util.List;
 
+/**
+ * Represents detailed personal and medical information of an individual.
+ */
 @Getter
 @AllArgsConstructor
 @ToString
 public class SubPersonInfoReplyPerson {
-    public SubPersonInfoReplyPerson(){
-        //constructor for jackson serialisation
+    /**
+     * Constructor for Jackson serialization.
+     */
+    public SubPersonInfoReplyPerson() {
+        // Constructor for Jackson serialization
     }
-    String lastName;
-    String address;
-    String city;
-    String zip;
-    String mail;
-    String birthdate;
-    List<String> medication;
-    List<String> allergies;
+
+    private String lastName;
+    private String address;
+    private String city;
+    private String zip;
+    private String mail;
+    private String birthdate;
+    private List<String> medication;
+    private List<String> allergies;
 }

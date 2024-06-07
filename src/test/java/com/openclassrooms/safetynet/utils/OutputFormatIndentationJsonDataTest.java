@@ -22,7 +22,7 @@ class OutputFormatIndentationJsonDataTest {
         OutputFormatIndentationJsonData outputFormatIndentationJsonData;
 
         void set_nestingReflexion(int _nestingReflexion) throws NoSuchFieldException, IllegalAccessException {
-            Field nestingField = OutputFormatIndentationJsonData.class.getDeclaredField("_nesting");
+            Field nestingField = OutputFormatIndentationJsonData.class.getDeclaredField("_nestingLevel");
             nestingField.setAccessible(true);
             nestingField.setInt(outputFormatIndentationJsonData,_nestingReflexion);
         }

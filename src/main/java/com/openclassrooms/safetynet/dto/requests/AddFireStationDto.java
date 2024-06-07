@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 
+/**
+ * DTO to send the data of the fire station to be added
+ */
 @Getter
 @AllArgsConstructor
 @ToString

@@ -5,7 +5,9 @@ import lombok.Getter;
 import lombok.ToString;
 
 import java.util.List;
-
+/**
+ * DTO to send the data to be updated concerning a Medical record.
+ */
 @Getter
 @AllArgsConstructor
 @ToString

@@ -5,6 +5,10 @@ import lombok.Getter;
 import lombok.ToString;
 
 import java.util.List;
+
+/**
+ * DTO to send the data of the medical record to be added
+ */
 @Getter
 @AllArgsConstructor
 @ToString

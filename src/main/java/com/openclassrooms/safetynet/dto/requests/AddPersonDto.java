@@ -4,7 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
-
+/**
+ * DTO to send the data of the person to be added
+ */
 @Getter
 @AllArgsConstructor
 @ToString

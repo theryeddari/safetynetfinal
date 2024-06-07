@@ -1,5 +1,6 @@
 package com.openclassrooms.safetynet.integrations;
 
+import com.openclassrooms.safetynet.exceptions.ManageJsonDataCustomException;
 import com.openclassrooms.safetynet.repository.ManageJsonData;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -30,12 +31,13 @@ public class FireStationControllerIT {
     private MockMvc mockMvc;
 
     @SpyBean
-    private ManageJsonData manageJsonData;
+    private ManageJsonData manageJsonDataSpy;
 
 
     @AfterEach
-    void setUp() throws IOException {
+    void setUp() throws IOException, ManageJsonDataCustomException.InitException {
         Files.copy(Path.of("src/main/resources/data.json"), Path.of("src/main/resources/dataForWriterTest.json"), StandardCopyOption.REPLACE_EXISTING);
+        manageJsonDataSpy.init();
     }
 
 
@@ -46,7 +48,7 @@ public class FireStationControllerIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{ \"address\": \"2 rue des bois\", \"station\": \"1\"}"))
                 .andExpect(MockMvcResultMatchers.status().isCreated());
-      Assertions.assertTrue(manageJsonData.fireStationReaderJsonData().stream().anyMatch(model -> model.getAddress().equals("2 rue des bois")));
+      Assertions.assertTrue(manageJsonDataSpy.fireStationReaderJsonData().stream().anyMatch(model -> model.getAddress().equals("2 rue des bois")));
     }
 
     @Test
@@ -65,7 +67,7 @@ public class FireStationControllerIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{ \"address\": \"1509 Culver St\", \"station\": \"3\", \"newNumberStation\": \"5\"}"))
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
-        Assertions.assertTrue(manageJsonData.fireStationReaderJsonData().stream().anyMatch(model -> model.getAddress().equals("1509 Culver St") && model.getStation().equals("5")));
+        Assertions.assertTrue(manageJsonDataSpy.fireStationReaderJsonData().stream().anyMatch(model -> model.getAddress().equals("1509 Culver St") && model.getStation().equals("5")));
     }
     @Test
     public void testUpdateFireStationNotFound() throws Exception {
@@ -82,7 +84,7 @@ public class FireStationControllerIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{ \"address\": \"1509 Culver St\", \"station\": \"3\"}"))
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
-        Assertions.assertTrue(manageJsonData.fireStationReaderJsonData().stream().noneMatch(model -> model.getAddress().equals("1509 Culver St") && model.getStation().equals("3")));
+        Assertions.assertTrue(manageJsonDataSpy.fireStationReaderJsonData().stream().noneMatch(model -> model.getAddress().equals("1509 Culver St") && model.getStation().equals("3")));
     }
 
     @Test

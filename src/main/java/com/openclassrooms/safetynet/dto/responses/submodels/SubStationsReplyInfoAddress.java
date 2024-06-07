@@ -4,16 +4,21 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.util.List;
-
+/**
+ * Represents address information including city and zip code.
+ */
 @Getter
 @AllArgsConstructor
 @ToString
 public class SubStationsReplyInfoAddress {
-    public SubStationsReplyInfoAddress(){
-        //constructor for jackson serialisation
+    /**
+     * Constructor for Jackson serialization.
+     */
+    public SubStationsReplyInfoAddress() {
+        // Constructor for Jackson serialization
     }
-    String address;
-    String city;
-    String zip;
+
+    private String address;
+    private String city;
+    private String zip;
 }

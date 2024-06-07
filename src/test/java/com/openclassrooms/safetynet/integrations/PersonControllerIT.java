@@ -1,8 +1,9 @@
 package com.openclassrooms.safetynet.integrations;
 
+import com.openclassrooms.safetynet.exceptions.ManageJsonDataCustomException;
 import com.openclassrooms.safetynet.repository.ManageJsonData;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -30,12 +31,13 @@ public class PersonControllerIT {
     private MockMvc mockMvc;
 
     @SpyBean
-    private ManageJsonData manageJsonData;
+    private ManageJsonData manageJsonDataSpy;
     
 
-    @AfterEach
-    void setUp() throws IOException {
+    @BeforeEach
+    void setUp() throws IOException, ManageJsonDataCustomException.InitException {
         Files.copy(Path.of("src/main/resources/data.json"), Path.of("src/main/resources/dataForWriterTest.json"), StandardCopyOption.REPLACE_EXISTING);
+        manageJsonDataSpy.init();
     }
 
 
@@ -48,7 +50,7 @@ public class PersonControllerIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(personJson)
                 ).andExpect(MockMvcResultMatchers.status().isCreated());
-      Assertions.assertTrue(manageJsonData.personReaderJsonData().stream().anyMatch(model -> model.getFirstName().equals("Barque") && model.getLastName().equals("Coule")));
+      Assertions.assertTrue(manageJsonDataSpy.personReaderJsonData().stream().anyMatch(model -> model.getFirstName().equals("Barque") && model.getLastName().equals("Coule")));
     }
 
     @Test
@@ -71,7 +73,7 @@ public class PersonControllerIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(personJson)
                 ).andExpect(MockMvcResultMatchers.status().isNoContent());
-        Assertions.assertTrue(manageJsonData.personReaderJsonData().stream().anyMatch(model -> model.getFirstName().equals("John") && model.getLastName().equals("Boyd") && model.getAddress().equals("blablarue")));
+        Assertions.assertTrue(manageJsonDataSpy.personReaderJsonData().stream().anyMatch(model -> model.getFirstName().equals("John") && model.getLastName().equals("Boyd") && model.getAddress().equals("blablarue")));
     }
     @Test
     public void testUpdatePersonNotFound() throws Exception {
@@ -91,7 +93,7 @@ public class PersonControllerIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(personJson)
                 ).andExpect(MockMvcResultMatchers.status().isNoContent());
-        Assertions.assertTrue(manageJsonData.personReaderJsonData().stream().noneMatch(model -> model.getFirstName().equals("John") && model.getLastName().equals("Boyd")));
+        Assertions.assertTrue(manageJsonDataSpy.personReaderJsonData().stream().noneMatch(model -> model.getFirstName().equals("John") && model.getLastName().equals("Boyd")));
     }
 
     @Test

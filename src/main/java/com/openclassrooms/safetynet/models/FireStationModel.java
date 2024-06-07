@@ -5,14 +5,28 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+/**
+ * Represents a fire station.
+ */
 @Setter
 @Getter
 @AllArgsConstructor
 @ToString
 public class FireStationModel {
-    public FireStationModel(){
-        //constructor for jackson serialisation
+    /**
+     * Default constructor for Jackson serialization.
+     */
+    public FireStationModel() {
+        // Default constructor for Jackson serialization
     }
-    String address;
-    String station;
+
+    /**
+     * The address associated with the fire station.
+     */
+    private String address;
+
+    /**
+     * The station number.
+     */
+    private String station;
 }

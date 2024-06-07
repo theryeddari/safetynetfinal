@@ -7,16 +7,20 @@ import lombok.ToString;
 
 import java.util.List;
 
+/**
+ * DTO for returning personal information about individuals with a specific first and last name,
+ * including their contact details and medical history.
+ */
 @Getter
 @AllArgsConstructor
 @ToString
 public class PersonInfoReplyPersonDTO {
     /**
-     * DTO for returning personal information about individuals with a specific first and last name,
-     * including their contact details and medical history.
+     * Constructor for Jackson serialization.
      */
-    public PersonInfoReplyPersonDTO(){
-        //constructor for jackson serialisation
+    public PersonInfoReplyPersonDTO() {
+        // Constructor for Jackson serialization
     }
-    List<SubPersonInfoReplyPerson> listPerson;
+
+    private List<SubPersonInfoReplyPerson> listPerson;
 }

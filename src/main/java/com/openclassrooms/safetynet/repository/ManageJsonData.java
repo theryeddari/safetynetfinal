@@ -18,7 +18,9 @@ import java.util.List;
 import java.util.Map;
 
 import static com.openclassrooms.safetynet.exceptions.ManageJsonDataCustomException.*;
-
+/**
+ *  class which manages all write and read operations on the Json file which serves as the database
+ */
 @Repository
 public class ManageJsonData {
     private static final Logger logger = LogManager.getLogger(ManageJsonData.class);
@@ -28,51 +30,81 @@ public class ManageJsonData {
     @Value("${path.file}")
     String path;
 
-    private File file;
+    File file;
 
-    private Map<String, Object> dataJson = new HashMap<>();
+    Map<String, Object> dataJson = new HashMap<>();
 
-    // Constructor to inject the ObjectMapper
+    /**
+     * Constructor to inject the ObjectMapper.
+     *
+     * @param objectMapper the ObjectMapper to use for JSON operations
+     */
     public ManageJsonData(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
-    // Method called after constructing the object to initialize the file and read the JSON data
+    /**
+     * Initializes the file and reads the JSON data.
+     * This method is called after the object is constructed.
+     *
+     * @throws InitException if initialization fails
+     */
     @PostConstruct
     public void init() throws InitException {
         try {
-            if (path.isBlank() || path.isEmpty()) {
-                throw new NullPointerException();
+            if (path.isBlank()) {
+                throw new NullPointerException("Path is blank or empty");
             }
             this.file = new File(path);
-            this.dataJson = objectMapper.readValue(file, new TypeReference<>() {});
+            this.dataJson = objectMapper.readValue(file, new TypeReference<>() {
+            });
             logger.info("JSON data initialized successfully from file: {}", path);
-            logger.debug("JSON data initialized successfully from file: {} and contains : {}", file.getAbsolutePath(), this.dataJson.toString());
+            logger.debug("JSON data initialized successfully from file: {} and contains: {}", file.getAbsolutePath(), this.dataJson);
         } catch (Exception e) {
             logger.error("Failed to initialize JSON data: {}", e.getMessage());
             throw new InitException(e);
         }
     }
 
-    // Method to read fire station data from JSON data
+    /**
+     * Reads fire station data from JSON.
+     *
+     * @return a list of FireStationModel objects
+     */
     public List<FireStationModel> fireStationReaderJsonData() {
         logger.info("Reading fire station data from JSON");
-        return objectMapper.convertValue(dataJson.get("firestations"), new TypeReference<>() {});
+        return objectMapper.convertValue(dataJson.get("firestations"), new TypeReference<>() {
+        });
     }
 
-    // Method to read people data from JSON data
+    /**
+     * Reads person data from JSON.
+     *
+     * @return a list of PersonModel objects
+     */
     public List<PersonModel> personReaderJsonData() {
         logger.info("Reading person data from JSON");
-        return objectMapper.convertValue(dataJson.get("persons"), new TypeReference<>() {});
+        return objectMapper.convertValue(dataJson.get("persons"), new TypeReference<>() {
+        });
     }
 
-    // Method to read medical records from JSON data
+    /**
+     * Reads medical records from JSON.
+     *
+     * @return a list of MedicalRecordModel objects
+     */
     public List<MedicalRecordModel> medicalRecordReaderJsonData() {
         logger.info("Reading medical record data from JSON");
-        return objectMapper.convertValue(dataJson.get("medicalrecords"), new TypeReference<>() {});
+        return objectMapper.convertValue(dataJson.get("medicalrecords"), new TypeReference<>() {
+        });
     }
 
-    // Method to write people data to the JSON file
+    /**
+     * Writes person data to the JSON file.
+     *
+     * @param list the list of PersonModel to write
+     * @throws PersonWriterException if writing fails
+     */
     public void personWriterJsonData(List<PersonModel> list) throws PersonWriterException {
         try {
             this.dataJson.replace("persons", list);
@@ -84,7 +116,12 @@ public class ManageJsonData {
         }
     }
 
-    // Method to write fire station data to the JSON file
+    /**
+     * Writes fire station data to the JSON file.
+     *
+     * @param list the list of FireStationModel to write
+     * @throws FireStationWriterException if writing fails
+     */
     public void fireStationWriterJsonData(List<FireStationModel> list) throws FireStationWriterException {
         try {
             this.dataJson.replace("firestations", list);
@@ -96,7 +133,12 @@ public class ManageJsonData {
         }
     }
 
-    // Method to write medical records to JSON file
+    /**
+     * Writes medical records to the JSON file.
+     *
+     * @param list the list of MedicalRecordModel to write
+     * @throws MedicalRecordWriterException if writing fails
+     */
     public void medicalRecordWriterJsonData(List<MedicalRecordModel> list) throws MedicalRecordWriterException {
         try {
             this.dataJson.replace("medicalrecords", list);

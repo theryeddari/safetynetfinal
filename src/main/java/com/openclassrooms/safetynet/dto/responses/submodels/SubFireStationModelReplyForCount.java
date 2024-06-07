@@ -4,14 +4,20 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
 
+/**
+ * Represents the count of adults and minors for a fire station coverage area.
+ */
 @Getter
 @AllArgsConstructor
 @ToString
 public class SubFireStationModelReplyForCount {
-    public SubFireStationModelReplyForCount(){
-        //constructor for jackson serialisation
+    /**
+     * Constructor for Jackson serialization.
+     */
+    public SubFireStationModelReplyForCount() {
+        // Constructor for Jackson serialization
     }
-    String adultCount;
-    String minorCount;
 
+    private String adultCount;
+    private String minorCount;
 }

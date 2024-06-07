@@ -8,18 +8,21 @@ import lombok.ToString;
 
 import java.util.List;
 
+/**
+ * DTO for returning a list of children living at a specified address,
+ * including their personal details and information about other household members.
+ */
 @Getter
 @AllArgsConstructor
 @ToString
 public class ChildAlertReplyPersonDTO {
     /**
-     * DTO for returning a list of children living at a specified address,
-     * including their personal details and information about other household members.
+     * Constructor for Jackson serialization.
      */
-    public ChildAlertReplyPersonDTO(){
-        //constructor for jackson serialisation
+    public ChildAlertReplyPersonDTO() {
+        // Constructor for Jackson serialization
     }
-    List<SubChildAlertReplyChildren> children;
-    List<SubChildAlertReplyAdultFamily> identityFamily;
-}
 
+    private List<SubChildAlertReplyChildren> children;
+    private List<SubChildAlertReplyAdultFamily> identityFamily;
+}

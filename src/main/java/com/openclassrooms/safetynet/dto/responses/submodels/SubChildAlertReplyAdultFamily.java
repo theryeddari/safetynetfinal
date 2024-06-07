@@ -4,13 +4,20 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
 
+/**
+ * Represents an adult family member in a child alert reply.
+ */
 @Getter
 @AllArgsConstructor
 @ToString
 public class SubChildAlertReplyAdultFamily {
-    public SubChildAlertReplyAdultFamily(){
-        //constructor for jackson serialisation
+    /**
+     * Constructor for Jackson serialization.
+     */
+    public SubChildAlertReplyAdultFamily() {
+        // Constructor for Jackson serialization
     }
-    String firstName;
-    String lastName;
+
+    private String firstName;
+    private String lastName;
 }
