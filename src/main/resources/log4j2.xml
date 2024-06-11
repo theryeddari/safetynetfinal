@@ -1,26 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
     <Appenders>
-        <!-- Configuration de l'appender pour la console -->
+        <!-- Appender pour la console -->
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"/>
         </Console>
+
+        <!-- Appender pour le fichier de log -->
+        <RollingFile name="File" fileName="test.log" filePattern="test-%d{yyyy-MM-dd}.log">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+            </Policies>
+        </RollingFile>
     </Appenders>
 
     <Loggers>
-        <!-- Configuration pour enregistrer les requêtes et réponses des endpoints -->
-        <Logger name="org.springframework.web.servlet.mvc.method.annotation" level="debug">
+        <!-- Logger pour les requêtes et réponses des endpoints en debug -->
+        <Logger name="org.springframework.web.servlet.mvc.method.annotation" level="debug" additivity="false">
             <AppenderRef ref="Console"/>
+            <AppenderRef ref="File"/>
         </Logger>
 
-        <!-- Configuration pour les réponses réussies -->
-        <Logger name="org.springframework.web.servlet.mvc.method.annotation" level="info">
+        <!-- Logger pour les réponses réussies en info -->
+        <Logger name="org.springframework.web.servlet.mvc.method.annotation" level="info" additivity="false">
             <AppenderRef ref="Console"/>
+            <AppenderRef ref="File"/>
         </Logger>
 
-        <!-- Configuration pour les erreurs ou exceptions -->
-        <Logger name="org.springframework.web.servlet.mvc.method.annotation" level="error">
+        <!-- Logger pour les erreurs ou exceptions en error -->
+        <Logger name="org.springframework.web.servlet.mvc.method.annotation" level="error" additivity="false">
             <AppenderRef ref="Console"/>
+            <AppenderRef ref="File"/>
         </Logger>
+
+        <!-- Logger racine -->
+        <Root level="debug">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="File"/>
+        </Root>
     </Loggers>
 </Configuration>
